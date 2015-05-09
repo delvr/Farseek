@@ -1,0 +1,8 @@
+.idea/workspace.xml
+
+.gradle/
+build/
+docs/
+libs/
+run-client/
+run-server/

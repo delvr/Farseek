@@ -1,0 +1,25 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Client" type="Application" factoryName="Application" singleton="true">
+    <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+    <option name="MAIN_CLASS_NAME" value="net.minecraft.launchwrapper.Launch" />
+    <option name="VM_PARAMETERS" value="-Dlog4j.configurationFile=../log4j.xml -Djava.library.path=$USER_HOME$/.gradle/caches/minecraft/net/minecraft/minecraft_natives/$MINECRAFT_VERSION$ -Dfml.coreMods.load=farseek.core.FarseekCoreMod" />
+    <option name="PROGRAM_PARAMETERS" value="--tweakClass cpw.mods.fml.common.launcher.FMLTweaker --assetsDir $USER_HOME$/.gradle/caches/minecraft/assets --assetIndex $MINECRAFT_VERSION$ --accessToken=1234 --userProperties={}" />
+    <option name="WORKING_DIRECTORY" value="file://run-client" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+    <option name="ALTERNATIVE_JRE_PATH" value="" />
+    <option name="ENABLE_SWING_INSPECTOR" value="false" />
+    <option name="ENV_VARIABLES" />
+    <option name="PASS_PARENT_ENVS" value="true" />
+    <module name="Farseek" />
+    <envs />
+    <RunnerSettings RunnerId="Debug">
+      <option name="DEBUG_PORT" value="" />
+      <option name="TRANSPORT" value="0" />
+      <option name="LOCAL" value="true" />
+    </RunnerSettings>
+    <RunnerSettings RunnerId="Run" />
+    <ConfigurationWrapper RunnerId="Debug" />
+    <ConfigurationWrapper RunnerId="Run" />
+    <method />
+  </configuration>
+</component>

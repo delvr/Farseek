@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Mod/Minecraft/Forge" pattern="src:*..*||lib:farseek..*||lib:net.minecraft..*||lib:net.minecraftforge..*||lib:cpw..*" />
+</component>

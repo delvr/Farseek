@@ -1,0 +1,39 @@
+apply plugin: "idea"
+
+idea {
+    module { excludeDirs += files(".idea", "docs", "gradle", "libs", "run-client", "run-server") }
+}
+
+task addLibraryTransformers {
+    fileTree(dir: "libs", include: "*.jar").each { File jar ->
+        zipTree(jar).each { File file ->
+            if(file.name.endsWith("_at.cfg")) {
+                println("Found AccessTransformer in library: ${file.name}")
+                deobfBinJar.addTransformer(file)
+                deobfuscateJar.addTransformer(file)
+            }
+        }
+    }
+}
+
+tasks.setupDecompWorkspace.dependsOn(addLibraryTransformers)
+
+ext.modSourceFile = "${modClass.replace('.', '/')}.scala"
+
+minecraft {
+    version = forgeVersion
+    replaceIn modSourceFile
+        replace "SNAPSHOT", modVersion
+        replace "required-after:farseek", "required-after:farseek@$farseekDependency"
+}
+
+archivesBaseName = project.projectDir.name
+version = modVersion
+
+jar {
+    manifest {
+        attributes "FMLCorePlugin": coreModClass
+        attributes "FMLCorePluginContainsFMLMod": "yeah it does"
+        attributes "FMLAT": accessTransformer
+    }
+}
