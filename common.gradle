@@ -1,4 +1,5 @@
 apply plugin: "idea"
+apply plugin: "curseforge"
 
 idea {
     module { excludeDirs += files(".idea", "docs", "gradle", "libs", "run-client", "run-server") }
@@ -36,4 +37,11 @@ jar {
         attributes "FMLCorePluginContainsFMLMod": "yeah it does"
         attributes "FMLAT": accessTransformer
     }
+}
+
+curse {
+    projectId   = curseForgeId
+    releaseType = curseForgeReleaseType
+    changelog   = curseForgeChangelog
+    apiKey = project.hasProperty("curseForgeApiKey")? project.curseForgeApiKey: ""
 }
