@@ -1,26 +1,34 @@
 package farseek.core
 
 /** A class transformer that applies [[FarseekClassVisitor]], followed by a [[MethodReplacer]] for each `methodReplacement`.
-  * Excludes COFH world proxies (`skyboy/core/world/WorldProxy` and `skyboy/core/world/WorldServerProxy`) due to ASM conflicts.
   * @author delvr
   */
 abstract class MethodReplacementTransformer extends FarseekBaseClassTransformer {
 
+    private var validated = false
+
+    protected val excludedClassPrefixes: Set[String] = Set(
+        /* Exclude COFH world proxies, since COFH would duplicate our replacement methods
+           (by failing to recognize and delete the originals) when applying the proxy.
+           Source: https://github.com/CoFH/CoFHCore/blob/master/src/main/java/cofh/asm/ASMCore.java */
+        "skyboy/core/world/WorldProxy", "skyboy/core/world/WorldServerProxy",
+
+        /* Exclude a LogisticsPipes class hierarchy containing a method with a client-only parameter we cannot delete in FarseekClassVisitor
+           because it's called from the server side and prevented from crashing only by using a null argument.
+           Source: https://github.com/RS485/LogisticsPipes/blob/mc17/common/logisticspipes/LogisticsPipes.java line 319 */
+        "logisticspipes/textures/Textures", "logisticspipes/proxy/interfaces/IProxy", "logisticspipes/proxy/side/ServerProxy"
+    )
+
     protected def methodReplacements: Seq[MethodReplacement]
 
-    // Use -Dlegacy.debugClassLoading=true for more information when testing this.
     protected def transform(name: String, bytecode: Array[Byte]) = {
-        // Exclude COFH world proxies, since COFH would duplicate our replacement methods
-        // (by failing to recognize and delete the originals) when applying the proxy.
-        // Source: https://github.com/CoFH/CoFHCore/blob/master/src/main/java/cofh/asm/ASMCore.java
-        if(name == "skyboy/core/world/WorldProxy" || name == "skyboy/core/world/WorldServerProxy")
-            bytecode
-        else {
-            var result = new FarseekClassVisitor(bytecode, name, methodReplacements).patch
-            for(replacement <- methodReplacements)
-                result = new MethodReplacer(result, name, replacement).patch
-            result
-        }
+        require(validated || !methodReplacements.exists(replacement => excludedClassPrefixes.exists(replacement.className.startsWith)),
+            s"Attempted to patch excluded class $name")
+        validated = true
+        var result = new FarseekClassVisitor(bytecode, name, methodReplacements).patch
+        for(replacement <- methodReplacements)
+            result = new MethodReplacer(result, name, replacement).patch
+        result
     }
 }
 
