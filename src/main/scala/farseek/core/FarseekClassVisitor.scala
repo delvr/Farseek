@@ -7,22 +7,37 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes._
 
 /** A [[ClassPatcher]] that applies a [[SuperCallFixingMethodVisitor]] to each method.
-  * On the server side, also removes any method with a parameter or return value from net.minecraft.client.* packages.
+  * On the server side, also removes any method with a parameter or return value from
+  * [[cpw.mods.fml.relauncher.SideOnly]]-annotated classes in the net.minecraft.client.* packages.
   * This is meant for method overrides not annotated with [[cpw.mods.fml.relauncher.SideOnly]] that will be missed by
   * Forge's [[cpw.mods.fml.common.asm.transformers.SideTransformer]] and can cause classloading errors when using reflection.
   * @author delvr
   */
 class FarseekClassVisitor(bytecode: Array[Byte], className: String, replacements: Seq[MethodReplacement]) extends ClassPatcher(bytecode) {
 
+    import farseek.core.FarseekClassVisitor._
+
     override def visitMethod(accessFlags: Int, name: String, descriptor: String, signature: String, exceptions: Array[String]) = {
-        if(side == SERVER && descriptor.contains("net/minecraft/client/")) {
-            trace(s"Removing method with net.minecraft.client parameters or return value: $className.$name")
+        if(side == SERVER && descriptor.contains(MinecraftClientPackage) && !UnannotatedClientClasses.exists(descriptor.contains)) {
+            trace(s"Removing method with client-only net.minecraft.client parameters or return value: $className.$name")
             null
         } else {
             val visitor = super.visitMethod(accessFlags, name, descriptor, signature, exceptions)
             new SuperCallFixingMethodVisitor(className, visitor, replacements)
         }
     }
+}
+
+/** Companion object for [[FarseekClassVisitor]]s.
+  * @author delvr
+  */
+object FarseekClassVisitor {
+
+    private val MinecraftClientPackage = "net/minecraft/client/"
+
+    /** Set of classes in [[MinecraftClientPackage]] that lack a [[cpw.mods.fml.relauncher.SideOnly]] annotation. */
+    private val UnannotatedClientClasses = Set("model/ModelBase", "model/ModelBox", "model/ModelRenderer",
+        "model/PositionTextureVertex", "model/TexturedQuad").map(MinecraftClientPackage + _)
 }
 
 /** A [[MethodVisitor]] that replaces super() calls to methods in `replacements` with calls to aliased methods created by [[MethodReplacer]]s

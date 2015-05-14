@@ -11,6 +11,8 @@ import scala.collection.JavaConversions._
   */
 class ClassReplacementTransformer extends FarseekBaseClassTransformer {
 
+    protected val excludedClassPrefixes: Set[String] = Set()
+
     private val modJar: Option[ZipFile] = {
         val classLocation = new File(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
         if(classLocation.isFile) Some(new ZipFile(classLocation))
