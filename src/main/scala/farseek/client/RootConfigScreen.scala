@@ -11,7 +11,8 @@ import net.minecraft.client.gui.GuiScreen
   */
 class RootConfigScreen(parent: GuiScreen) extends ConfigScreen(parent) {
 
-    protected lazy val category = classFieldValues[ModContainer](parent.asInstanceOf[GuiModList]).head.getMod.asInstanceOf[FarseekBaseMod].configuration.get
+    protected lazy val category = classFieldValues[ModContainer](
+        parent.asInstanceOf[GuiModList]).head.getMod.asInstanceOf[FarseekBaseMod].configuration.get
 
     /** Saves the configuration on exit. */
     override protected def close() {

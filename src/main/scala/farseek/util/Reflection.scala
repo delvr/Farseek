@@ -27,7 +27,7 @@ object Reflection {
     /** Recursively copies the values of all instance fields of `from` to `to`,
       * starting with common class/superclass `startClass` and moving up through superclasses. */
     def cloneObject[T: ClassTag](startClass: Class[_], from: T, to: T) {
-        startClass.getDeclaredFields.filterNot(field => isStatic(field.getModifiers)).foreach(_.copyValue(from, to))
+        startClass.getDeclaredFields.filterNot(field => isStatic(field.getModifiers)).foreach(f => f(to) = f(from))
         Option(startClass.getSuperclass).foreach(cloneObject(_, from, to))
     }
 
@@ -45,9 +45,9 @@ object Reflection {
 
         def value[T](instance: Any = null): T = accessible.get(instance).asInstanceOf[T]
 
-        def setValue(value: Any, instance: Any = null) { accessible.set(instance, value) }
+        def update(instance: Any, value: Any) { accessible.set(instance, value) }
 
-        def copyValue(from: Any, to: Any) { setValue(value(from), to) }
+        def update(value: Any) { update(null, value) }
     }
 
     /** Value class for [[Method]]s with utility methods. */

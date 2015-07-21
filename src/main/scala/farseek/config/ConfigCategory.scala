@@ -1,43 +1,34 @@
 package farseek.config
 
-import scala.collection._
-import java.util.Properties
 import java.io._
+import scala.collection.mutable
 
 /** A [[ConfigElement]] setting with help text and load-time value parsing and defaulting.
   * @author delvr
   */
-class ConfigCategory(category: Option[ConfigCategory], name: String) extends ConfigElement(category, name) {
+class ConfigCategory private(name: String, parent: Option[ConfigCategory]) extends ConfigElement(name) {
 
-    val elements = mutable.Buffer[ConfigElement]()
+    import farseek.config.ConfigElement._
 
-    val caption = s"$name Settings"
+    def this(name: String, parent: ConfigCategory) = this(name, Some(parent))
 
-    private val file = new File("config", s"$id.properties")
+    protected def this(name: String) = this(name, None)
 
-    def load() {
-        if(file.exists) {
-            val props = new Properties
-            props.load(new FileReader(file))
-            load(props)
+    val elements = mutable.LinkedHashSet[ConfigElement]() // Unique, but preserving insertion order
+
+    parent.foreach(_ += this)
+
+    def += (element: ConfigElement) { elements += element }
+
+    def load(parents: Seq[ConfigCategory], properties: Map[String, String]) {
+        elements.foreach(_.load(parents :+ this, properties))
+    }
+
+    def save(parents: Seq[ConfigCategory], writer: PrintWriter) = {
+        if(parents.size == 1) {
+            printHeader(writer, s"$name Settings")
+            writer.println()
         }
-    }
-
-    def load(props: Properties) {
-        elements.foreach(_.load(props))
-    }
-
-    def save() {
-        val writer = new PrintWriter(new FileWriter(file))
-        save(writer, fileColumns)
-        writer.close()
-    }
-
-    def save(writer: PrintWriter, columns: Int) {
-        writer.println( "#" * fileColumns)
-        writer.println(s"# $caption")
-        writer.println( "#" * fileColumns)
-        writer.println()
-        elements.foreach(_.save(writer, columns))
+        elements.flatMap(_.save(parents :+ this, writer)).toSet
     }
 }

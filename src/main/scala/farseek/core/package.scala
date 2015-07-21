@@ -9,7 +9,8 @@ import org.objectweb.asm.Type._
   */
 package object core {
 
-    /** Ordering of Farseek among other core mods. We use a high number so we replace methods _after_ other mods have patched them. */
+    /** Ordering of Farseek among other core mods.
+      * We use a high number so we replace methods _after_ other mods have patched them. */
     final val FarseekCoreModSortIndex = 1000000
 
     val AsmVersion = Opcodes.ASM5
@@ -50,7 +51,8 @@ package object core {
 
     def parameterFrameTypes(descriptor: String): Array[AnyRef] = getArgumentTypes(descriptor).map(asmFrameType)
 
-    def methodDescriptor(returnType: Any, parameterTypes: Any*): String = s"(${parameterTypes.map(typeDescriptor).mkString})${typeDescriptor(returnType)}"
+    def methodDescriptor(returnType: Any, parameterTypes: Any*): String =
+        s"(${parameterTypes.map(typeDescriptor).mkString})${typeDescriptor(returnType)}"
     
     def typeDescriptor(classe: Any): String = classe match {
         case null => "V"

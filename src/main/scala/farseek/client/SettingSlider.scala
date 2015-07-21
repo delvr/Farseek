@@ -8,13 +8,14 @@ import org.lwjgl.opengl.GL11._
 /** A slider for a [[NumericSetting]].
   * @author delvr
   */
-class SettingSlider(setting: NumericSetting, index: Int, _xPosition: Int, _yPosition: Int, _width: Int, _height: Int)
-        extends SettingButton(setting, index, _xPosition, _yPosition, _width, _height) {
+class SettingSlider(setting: NumericSetting, index: Int, _xPos: Int, _yPos: Int, _width: Int, _height: Int)
+        extends SettingButton(setting, index, _xPos, _yPos, _width, _height) {
 
     private var mouseIsPressed = false
 
     private def setValueFromPosition(x: Int) {
-        setValue(setting.snapToStep(setting.denormalized(clamp_double((x - (xPosition + 4)).toDouble / (width - 8).toDouble, 0F, 1F))))
+        setValue(setting.snapToStep(setting.denormalized(
+            clamp_double((x - (xPosition + 4)).toDouble / (width - 8).toDouble, 0F, 1F))))
     }
 
     override protected def getHoverState(unused: Boolean) = 0

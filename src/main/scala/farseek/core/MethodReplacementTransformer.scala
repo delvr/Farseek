@@ -1,6 +1,7 @@
 package farseek.core
 
-/** A class transformer that applies [[FarseekClassVisitor]], followed by a [[MethodReplacer]] for each `methodReplacement`.
+/** A class transformer that applies [[FarseekClassVisitor]],
+  * followed by a [[MethodReplacer]] for each `methodReplacement`.
   * @author delvr
   */
 abstract class MethodReplacementTransformer extends FarseekBaseClassTransformer {
@@ -13,8 +14,8 @@ abstract class MethodReplacementTransformer extends FarseekBaseClassTransformer 
            Source: https://github.com/CoFH/CoFHCore/blob/master/src/main/java/cofh/asm/ASMCore.java */
         "skyboy/core/world/WorldProxy", "skyboy/core/world/WorldServerProxy",
 
-        /* Exclude a LogisticsPipes class hierarchy containing a method with a client-only parameter we cannot delete in FarseekClassVisitor
-           because it's called from the server side and prevented from crashing only by using a null argument.
+        /* Exclude a LogisticsPipes class hierarchy containing a method with a client-only parameter we cannot delete in
+           FarseekClassVisitor because it's called from the server side and prevented from crashing by using a null arg.
            Source: https://github.com/RS485/LogisticsPipes/blob/mc17/common/logisticspipes/LogisticsPipes.java line 319 */
         "logisticspipes/textures/Textures", "logisticspipes/proxy/interfaces/IProxy", "logisticspipes/proxy/side/ServerProxy"
     )
@@ -22,7 +23,8 @@ abstract class MethodReplacementTransformer extends FarseekBaseClassTransformer 
     protected def methodReplacements: Seq[MethodReplacement]
 
     protected def transform(name: String, bytecode: Array[Byte]) = {
-        require(validated || !methodReplacements.exists(replacement => excludedClassPrefixes.exists(replacement.className.startsWith)),
+        require(validated || !methodReplacements.exists(replacement =>
+            excludedClassPrefixes.exists(replacement.className.startsWith)),
             s"Attempted to patch excluded class $name")
         validated = true
         var result = new FarseekClassVisitor(bytecode, name, methodReplacements).patch
@@ -41,6 +43,8 @@ case class MethodReplacement(className: String, devName: String, srgName: String
 
     def matches(methodName: String, methodDescriptor: String) =
         (devName == methodName || srgName == methodName) && descriptor == methodDescriptor
+
+    def names = s"$devName/$srgName"
 }
 
 /** Factory for [[MethodReplacement]]s. Provides a shortcut for cases where the method has no SRG name.
@@ -57,14 +61,4 @@ object MethodReplacement {
 
     def apply(className: String, name: String, descriptor: String, replacement: String): MethodReplacement =
         apply(className, name, name, descriptor, replacement)
-
-    @deprecated(message = "Use apply(String, String, String, String, String)", since = "1.0.7")
-    def apply(className: String, devName: String, srgName: String, descriptor: String, replacement: String,
-              transformer: MethodReplacementTransformer): MethodReplacement =
-        apply(className, devName, srgName, descriptor, replacement)
-
-    @deprecated(message = "Use apply(String, String, String, String)", since = "1.0.7")
-    def apply(className: String, name: String, descriptor: String, replacement: String,
-              transformer: MethodReplacementTransformer): MethodReplacement =
-        apply(className, name, descriptor, replacement)
 }

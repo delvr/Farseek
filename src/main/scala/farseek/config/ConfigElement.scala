@@ -2,23 +2,34 @@ package farseek.config
 
 import farseek.util.Logging
 import java.io._
-import java.util.Properties
 
-/** A configuration setting or category with built-in help text and file save/load facilities. Part of a [[ConfigCategory]] unless it is the root category.
-  * Predates Forge's own config GUI mechanism and can be used as a more functional alternative to it.
+/** A configuration setting or category with built-in help text and file save/load facilities.
   * @author delvr
   */
-abstract class ConfigElement(category: Option[ConfigCategory], val name: String) extends Logging {
+abstract class ConfigElement(val name: String) extends Logging {
 
-    val id: String = category.map(_.id + '.').getOrElse("") + name.head.toLower + name.tail.replaceAll("\\W+", "")
+    def load(parents: Seq[ConfigCategory], properties: Map[String, String])
 
-    category.foreach(_.elements += this)
+    def save(parents: Seq[ConfigCategory], writer: PrintWriter): Set[String]
 
-    protected val fileColumns = 120
+    override def equals(that: Any) = that match {
+        case c: ConfigElement => c.name == this.name
+        case _ => false
+    }
 
-    def load(props: Properties)
+    override def toString = name
+}
 
-    def save(writer: PrintWriter, columns: Int)
+object ConfigElement {
+    val fileColumns = 120
+    val commentSymbol = "#"
+    val commentPrefix = commentSymbol + " "
+    val separator = commentSymbol * fileColumns
 
-    override val toString = name
+    def printHeader(writer: PrintWriter, caption: String) {
+        writer.println(separator)
+        writer.println(s"# $caption")
+        writer.println(separator)
+        writer.println()
+    }
 }

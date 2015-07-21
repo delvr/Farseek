@@ -1,17 +1,18 @@
 package farseek.util
 
 import org.apache.logging.log4j.LogManager._
+import org.apache.logging.log4j.Logger
 
-/** Logging trait that wraps a [[org.apache.logging.log4j.Logger]] named after the first two dot-separated parts of the implementor's package name (ex.: `mod.farseek`).
+/** Logging trait that wraps a Log4J [[Logger]] named by default after the first dot-separated part of the
+  * implementing class's package name (ex.: `farseek`).
   * Logging methods only resolve their argument to a String if the relevant logging level is enabled.
   * @author delvr
   */
 trait Logging {
 
-    private val logger = getLogger {
-        val className = getClass.getName.split('.')
-        if(className.length > 1) className(0) + '.' + className(1) else className(0)
-    }
+    protected def loggerName = getClass.getName.split('.').head
+
+    private val logger = getLogger(loggerName)
 
     def trace(message: => Any) {
         if(logger.isTraceEnabled) logger.trace(message)

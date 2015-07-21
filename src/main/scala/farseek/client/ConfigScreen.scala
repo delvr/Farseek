@@ -35,10 +35,10 @@ abstract class ConfigScreen(parent: GuiScreen) extends GuiScreen {
             val y = 30 + i/2*30
             val w = width/2 - 30
             val control = element match {
-                case category: ConfigCategory     => new           CategoryButton(category, i, x, y, w, h, s"${category.caption}...")
-                case  setting: BooleanSetting     => new       OnOffSettingButton( setting, i, x, y, w, h)
-                case  setting: MultiChoiceSetting => new MultiChoiceSettingButton( setting, i, x, y, w, h)
-                case  setting: NumericSetting     => new            SettingSlider( setting, i, x, y, w, h)
+                case category: ConfigCategory => new CategoryButton(category, i, x, y, w, h, s"${category.name}...")
+                case  setting: BooleanSetting => new OnOffSettingButton( setting, i, x, y, w, h)
+                case  setting: MultiChoiceSetting[_, _] => new MultiChoiceSettingButton( setting, i, x, y, w, h)
+                case  setting: NumericSetting => new SettingSlider( setting, i, x, y, w, h)
             }
             buttons += control
         }
@@ -48,7 +48,7 @@ abstract class ConfigScreen(parent: GuiScreen) extends GuiScreen {
     /** Draws the screen's buttons and sets up their tooltips. */
     override def drawScreen(x: Int, y: Int, renderPartialTicks: Float) {
         drawDefaultBackground()
-        drawCenteredString(fontRendererObj, category.caption, width/2, 10, 0xFFFFFF)
+        drawCenteredString(fontRendererObj, category.name, width/2, 10, 0xFFFFFF)
         super.drawScreen(x, y, renderPartialTicks)
         if(abs(x - lastMouseX) <= 5 && abs(y - lastMouseY) <= 5) {
             if(currentTimeMillis >= mouseStillTime + 700) {
