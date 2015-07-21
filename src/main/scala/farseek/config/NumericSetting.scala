@@ -1,12 +1,13 @@
 package farseek.config
 
+import farseek.util._
 import scala.math._
 
-/** A [[Setting]] with Double values and a set precision and step.
+/** A [[ConfigSetting]] with Double values and a set precision and step.
   * @author delvr
   */
-class NumericSetting(category: ConfigCategory, name: String, help: String, defaultValue: Double, min: Double, max: Double, step: Double = 1D)
-        extends Setting(category, name, help, defaultValue) {
+class NumericSetting(name: String, help: String, defaultValue: Double, min: Double, max: Double, step: Double = 1D)
+        extends ConfigSetting(name, help, defaultValue) {
 
     require(max > min && step > 0 && step <= max - min && defaultValue >= min && defaultValue <= max,
             s"Invalid min/max/step/default for setting $this")
@@ -19,7 +20,10 @@ class NumericSetting(category: ConfigCategory, name: String, help: String, defau
 
     private def doubleToString(d: Double) = FormatString.format(d)
 
-    protected val valuesHelp = Seq(s"Range: ${doubleToString(min)} to ${doubleToString(max)} (default: ${doubleToString(defaultValue)})")
+    protected val valuesHelp =
+        Seq(s"Range: ${doubleToString(min)} to ${doubleToString(max)}" +
+            textIf(step != 1D, s" by increments of ${doubleToString(step)}") +
+            s" (default: ${doubleToString (defaultValue)})")
 
     protected def parse(s: String) = {
         val f = s.toDouble

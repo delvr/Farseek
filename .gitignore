@@ -1,8 +1,7 @@
-.idea/workspace.xml
-
-.gradle/
-build/
-docs/
-libs/
-run-client/
-run-server/
+/*.iml
+/.gradle/
+/build*/
+/doc*/
+/lib*/
+/run*/
+/gradle/wrapper/gradle-wrapper.jar

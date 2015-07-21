@@ -1,91 +1,137 @@
 package farseek.world.gen.structure
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent
+import farseek.util.BoundingBox._
 import farseek.util.ImplicitConversions._
-import farseek.util.Reflection._
 import farseek.util._
 import farseek.world._
+import farseek.world.gen.CoordinateSystem._
 import farseek.world.gen._
-import java.util.Random
-import net.minecraft.block.Block
 import net.minecraft.world._
+import net.minecraft.world.gen.structure.MapGenStructure
 import net.minecraftforge.common.MinecraftForge._
-import net.minecraftforge.event.terraingen.ChunkProviderEvent.ReplaceBiomeBlocks
 import net.minecraftforge.event.terraingen._
 import net.minecraftforge.event.world.WorldEvent
 import scala.collection.mutable
 
-/** Farseek implementation of world generation [[Structure]] generators, as an alternative to vanilla [[net.minecraft.world.gen.structure.MapGenStructure]]s.
-  *
-  * @migration(message = "Structure API is not fully stable and will change for Streams version 0.2", version = "1.1.0")
+/** Farseek implementation of world generation [[Structure]] generators, as an alternative to vanilla [[MapGenStructure]]s.
   * @author delvr
   */
-abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimensionId: Int = SurfaceDimensionId) extends Logging {
+abstract class StructureGenerator[T <: Structure] extends Logging {
 
-    protected val invalidWorldTypes = Set[WorldType]()
     protected val structures = mutable.Map[XZ, Option[T]]()
+
+    def generate(xzChunk: XZ)(implicit r: BlockReader)
+
+    def carve(implicit w: BlockWriter with ChunkSet)
+
+    def build(implicit w: BlockWriter with ChunkSet)
+
+    def clear() { structures.clear() }
+
+    protected def createIn(zone: Bounded)(implicit w: BlockReader): Option[T]
+
+    protected def generateFrom(xzChunk: XZ, zone: Bounded)(implicit r: BlockReader) {
+        structures(xzChunk) = createIn(zone).filter(_.generateIn(r, chunkRandomSeed(xzChunk)))
+    }
+
+    protected def carveFrom(xzChunk: XZ)(implicit w: BlockWriter with ChunkSet) {
+        doWithIntersectingStructureAt(xzChunk, _.carveIn(w))
+    }
+
+    protected def buildFrom(xzChunk: XZ)(implicit w: BlockWriter with ChunkSet) {
+        doWithIntersectingStructureAt(xzChunk, _.buildIn(w))
+    }
+
+    private def doWithIntersectingStructureAt(xzChunk: XZ, f: Structure => Unit)(implicit w: Bounded) {
+        structures.get(xzChunk).foreach(_.foreach( structure =>
+            if(structure.intersects(w)) f(structure)
+        ))
+    }
+}
+
+object StructureGenerator {
 
     EVENT_BUS.register(this)
 
-    @SubscribeEvent def onChunkGeneration(event: ReplaceBiomeBlocks) {
-        // Fix missing/invalid pieces from deprecated ReplaceBiomeBlocks constructors
-        val world =
-            if(event.world != null) event.world
-            else chunkGeneratorWorldClassFields(event.chunkProvider.getClass).value[World](event.chunkProvider)
-        val datas =
-            if(event.metaArray != null && event.metaArray.size == event.blockArray.size) event.metaArray
-            else null
-        onChunkGeneration(world.provider, event.chunkProvider, event.chunkX, event.chunkZ, event.blockArray, datas)
+    private val dimensionGenerators =
+        mutable.Map[Int, mutable.Map[WorldType, mutable.Buffer[StructureGenerator[_]]]]().withDefaultValue(
+            mutable.Map().withDefaultValue(mutable.Buffer()))
+
+    def generatorsFor(world: World): Seq[StructureGenerator[_]] =
+        dimensionGenerators(world.dimensionId)(world.terrainType)
+
+    def addGenerator(dimensionId: Int, generator: StructureGenerator[_], worldTypes: WorldType*) {
+        val dimGenerators = dimensionGenerators.getOrElseUpdate(dimensionId, mutable.Map())
+        worldTypes.foreach(dimGenerators.getOrElseUpdate(_, mutable.Buffer()) += generator)
     }
 
-    def onChunkGeneration(worldProvider: WorldProvider, generator: ChunkGenerator, xChunk: Int, zChunk: Int, blocks: Array[Block], datas: Array[Byte]) {
-        if(worldProvider.dimensionId == this.dimensionId && !invalidWorldTypes.contains(worldProvider.terrainType)) {
-            implicit val worldAccess = StructureGenerationChunkProvider(worldProvider)
-            if(generator != worldAccess.generator) // Don't recurse events when generating for structures
-                generate(xChunk, zChunk, blocks, datas)
+    @SubscribeEvent def onPrePopulateChunk(event: PopulateChunkEvent.Pre) {
+        val w = event.world
+        val (xChunk, zChunk) = (event.chunkX, event.chunkZ)
+        val area = new BlockWriterWrapper(WorldBlockWriter(w),
+            sizedBox(xChunk*ChunkSize + ChunkSize/2, w.yMin, zChunk*ChunkSize + ChunkSize/2, ChunkSize, w.height),
+            chunkRandomSeed((xChunk, zChunk), w.getSeed),
+            Set((xChunk, zChunk), (xChunk + 1, zChunk), (xChunk, zChunk + 1), (xChunk + 1, zChunk + 1)))
+        generatorsFor(w).foreach(_.build(area))
+    }
+
+    @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
+        if(!event.world.isRemote)
+            generatorsFor(event.world).foreach(_.clear())
+    }
+}
+
+abstract class ZonedStructureGenerator[T <: Structure](xZoneChunkSize: Int, zZoneChunkSize: Int)
+        extends StructureGenerator[T] {
+
+    require(xZoneChunkSize > 0 && zZoneChunkSize > 0)
+
+    private def xzZoneChunk(xzChunk: XZ) =
+        (flooredDivision(xzChunk.x, xZoneChunkSize) * xZoneChunkSize,
+         flooredDivision(xzChunk.z, zZoneChunkSize) * zZoneChunkSize)
+
+    def generate(xzChunk: XZ)(implicit r: BlockReader) {
+        val key = xzZoneChunk(xzChunk)
+        if(!structures.contains(key)) {
+            val zone = sizedBox(key.x*ChunkSize, r.yMin, key.z*ChunkSize,
+                                xZoneChunkSize*ChunkSize, r.height, zZoneChunkSize*ChunkSize)
+            generateFrom(key, zone)
         }
     }
 
-    protected def generate(xChunk: Int, zChunk: Int, blocks: Array[Block], datas: Array[Byte])(implicit worldAccess: IBlockAccess) {
-        for(xStructureChunk <- xChunk - chunksRange to xChunk + chunksRange;
-            zStructureChunk <- zChunk - chunksRange to zChunk + chunksRange) {
-            if(!structures.contains(xStructureChunk, zStructureChunk)) {
-                implicit val random = chunkRandom(xStructureChunk, zStructureChunk)(worldAccess.worldProvider)
-                val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,            (zStructureChunk - chunksRange)*ChunkSize,
-                                            (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
-                val structureOption = createStructure(bounds).flatMap { structure =>
-                    structure.generate(worldAccess, random)
-                    if(structure.isValid) {
-                        structure.commit()
-                        debug(structure.debug)
-                        Some(structure)
-                    } else {
-                        structure.clear()
-                        None
-                    }
-                }
-                structures((xStructureChunk, zStructureChunk)) = structureOption
+    def carve(implicit w: BlockWriter with ChunkSet) {
+        w.xzChunks.map(xzZoneChunk).foreach(carveFrom)
+    }
+
+    def build(implicit w: BlockWriter with ChunkSet) {
+        w.xzChunks.map(xzZoneChunk).foreach(buildFrom)
+    }
+}
+
+abstract class RangedStructureGenerator[T <: Structure](chunksRange: Int) extends StructureGenerator[T] {
+
+    require(chunksRange > 0)
+
+    def generate(xzChunk: XZ)(implicit r: BlockReader) {
+        for(xStructureChunk <- xzChunk.x - chunksRange to xzChunk.x + chunksRange;
+            zStructureChunk <- xzChunk.z - chunksRange to xzChunk.z + chunksRange) {
+            val key = (xStructureChunk, zStructureChunk)
+            if(!structures.contains(key)) {
+                val zone = BoundingBox((xStructureChunk - chunksRange)*ChunkSize, r.yMin,
+                                       (zStructureChunk - chunksRange)*ChunkSize,
+                                       (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, r.yMax,
+                                       (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
+                generateFrom(key, zone)
             }
         }
     }
 
-    protected def createStructure(bounds: BoundingBox)(implicit worldAccess: IBlockAccess, random: Random): Option[T]
-
-    @SubscribeEvent def onPrePopulateChunk(event: PopulateChunkEvent.Pre) {
-        if(event.world.dimensionId == this.dimensionId)
-            build(event.chunkX, event.chunkZ)(event.world.asInstanceOf[WorldServer], event.rand)
+    def carve(implicit w: BlockWriter with ChunkSet) {
+        structures.keys.foreach(carveFrom)
     }
 
-    protected def build(xChunk: Int, zChunk: Int)(implicit world: WorldServer, random: Random) {
-        val area = new PopulatingArea(xChunk, zChunk, world)
-        structures.foreach {
-            case (_, Some(structure)) if structure.intersectsWith(area) => structure.build(area, random)
-            case _ =>
-        }
-    }
-
-    @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
-        if(!event.world.isRemote && event.world.dimensionId == this.dimensionId)
-            structures.clear()
+    def build(implicit w: BlockWriter with ChunkSet) {
+        structures.keys.foreach(buildFrom)
     }
 }

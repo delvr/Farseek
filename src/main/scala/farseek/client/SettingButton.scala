@@ -3,11 +3,11 @@ package farseek.client
 import farseek.config._
 import net.minecraft.client.gui.GuiButton
 
-/** A button for a [[Setting]].
+/** A button for a [[ConfigSetting]].
   * @author delvr
   */
-abstract class SettingButton[T](setting: Setting[T], index: Int, _xPosition: Int, _yPosition: Int, _width: Int, _height: Int)
-        extends GuiButton(index, _xPosition, _yPosition, _width, _height, null) {
+abstract class SettingButton[T](setting: ConfigSetting[T], index: Int, _xPos: Int, _yPos: Int, _width: Int, _height: Int)
+        extends GuiButton(index, _xPos, _yPos, _width, _height, null) {
 
     setCaption()
 

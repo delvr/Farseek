@@ -1,52 +1,28 @@
 package farseek.world.gen.structure
 
-import farseek.util.ImplicitConversions._
 import farseek.util._
 import farseek.world.gen._
-import java.util.Random
-import net.minecraft.world._
 import net.minecraft.world.gen.structure._
-import scala.collection.mutable
 
 /** Farseek implementation of world generation structures, as an alternative to vanilla [[StructureStart]]s.
-  *
-  * @migration(message = "Structure API is not fully stable and will change for Streams version 0.2", version = "1.1.0")
   * @author delvr
   */
-abstract class Structure[T <: StructureComponent](generator: StructureGenerator[_], val boundingBox: BoundingBox,
-                                                  protected val worldProvider: WorldProvider) extends Bounded with Logging {
-    
-    protected val components = mutable.Buffer[T]()
+abstract class Structure extends Bounds with Logging {
 
-    def generate(implicit worldAccess: IBlockAccess, random: Random)
+    final def generateIn(r: BlockReader, randomSeed: Long): Boolean =
+        generate(new BlockReaderWrapper(r, bounds, randomSeed))
 
-    def +=(component: T) {
-        components += component
+    final def carveIn(w: BlockWriter with ChunkSet) {
+        carve(new BlockWriterWrapper(w, bounds, w.randomSeed, w.xzChunks))
     }
 
-    def isValid: Boolean
-
-    def commit() {
-        boundingBox.clear()
-        components.foreach(component => boundingBox.expandTo(component.paddedBox))
+    final def buildIn(w: BlockWriter with ChunkSet) {
+        build(new BlockWriterWrapper(w, bounds, w.randomSeed, w.xzChunks))
     }
 
-    def clear() {
-        components.clear()
-    }
+    protected def generate(implicit r: BlockReader): Boolean
 
-    def build(area: PopulatingArea, random: Random) {
-        require(area.worldProvider == this.worldProvider)
-        intersectingComponents(area, _.paddedBox).foreach(_.build(area, random))
-    }
+    protected def carve(implicit w: BlockWriter)
 
-    def intersectingComponents(area: BoundingBox, componentBox: StructureComponent => BoundingBox): Seq[T] =
-        if(boundingBox.intersectsWith(area)) components.filter(componentBox(_).intersectsWith(area)) else Seq.empty
-
-    def intersectingComponentsAt(xz: XZ, componentBox: StructureComponent => BoundingBox): Seq[T] =
-        if(boundingBox.contains(xz)) components.filter(componentBox(_).contains(xz)) else Seq.empty
-
-    override def toString = s"${super.toString}: ${components.mkString(" ")}"
-
-    override def debug = s"${super.toString} ${super.debug}: ${components.map(_.debug).mkString("  ")}"
+    protected def build(implicit w: BlockWriter)
 }

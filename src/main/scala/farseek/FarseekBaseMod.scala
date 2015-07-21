@@ -3,9 +3,11 @@ package farseek
 import cpw.mods.fml.common.Mod.EventHandler
 import cpw.mods.fml.common._
 import cpw.mods.fml.common.event._
-import farseek.config.ConfigCategory
+import farseek.config._
 import farseek.util.Logging
-
+import java.io.PrintWriter
+import java.nio.file.Files._
+import java.nio.file._
 import scala.collection.JavaConversions._
 
 /** Convenience base class for Farseek mods. Provides configuration and metadata support.
@@ -15,17 +17,32 @@ abstract class FarseekBaseMod extends Logging {
 
     val id = getClass.getAnnotation(classOf[Mod]).modid
 
+    private lazy val outputFile = {
+        val path = Paths.get("logs", s"$name.out")
+        createDirectories(path.getParent)
+        new PrintWriter(newBufferedWriter(path), true)
+    }
+
     def name: String
     def description: String
     def authors: Seq[String]
 
-    def configuration: Option[ConfigCategory]
+    def configuration: Option[ConfigRoot]
 
-    /** If true, worlds created without this mod cannot be loaded while the mod is active. An onscreen message will inform the user of this. */
+    /** If true, worlds created without this mod cannot be loaded while the mod is active.
+      * An onscreen message will inform the user of this. */
     def requiresNewWorld = false
 
     /** If defined, worlds created without this mod can be loaded but only after the user confirms the onscreen warning. */
     def existingWorldWarning: Option[String] = None
+
+    def printout(line: Any) {
+        outputFile.println(line)
+    }
+
+    def printout() {
+        outputFile.println()
+    }
 
     /** Sets mod metadata from member defs. Programmable alternative to using a Forge mcmod.info file. */
     @EventHandler def handle(event: FMLPreInitializationEvent) {
@@ -34,14 +51,5 @@ abstract class FarseekBaseMod extends Logging {
         meta.name = name
         meta.description = description
         meta.authorList = authors
-    }
-
-    /** Loads and saves configuration file if defined, creating it if non-existent.
-      * Runs late so other mods get to register blocks, etc. that could be referenced in configuration values. */
-    @EventHandler def handle(event: FMLLoadCompleteEvent) {
-        configuration.foreach { config =>
-            config.load()
-            config.save()
-        }
     }
 }

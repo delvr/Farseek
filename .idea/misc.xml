@@ -8,7 +8,7 @@
     <option name="outputDir" value="docs" />
     <option name="additionalFlags" value="" />
     <option name="maxHeapSize" value="" />
-    <option name="docTitle" value="Farseek documentation" />
+    <option name="docTitle" value="Mod API Documentation" />
     <option name="verbose" value="true" />
     <option name="openInBrowser" value="true" />
   </component>

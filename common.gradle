@@ -1,13 +1,12 @@
 apply plugin: "idea"
-apply plugin: "curseforge"
 
-idea {
-    module { excludeDirs += files(".idea", "docs", "gradle", "libs", "run-client", "run-server") }
+idea.module {
+    excludeDirs += files(".idea", "docs", "gradle", "libs", "run", "run-client", "run-server")
 }
 
 task addLibraryTransformers {
-    fileTree(dir: "libs", include: "*.jar").each { File jar ->
-        zipTree(jar).each { File file ->
+    fileTree(dir: "libs", include: "*.jar").each { jar ->
+        zipTree(jar).each { file ->
             if(file.name.endsWith("_at.cfg")) {
                 println("Found AccessTransformer in library: ${file.name}")
                 deobfBinJar.addTransformer(file)
@@ -28,20 +27,23 @@ minecraft {
         replace "required-after:farseek", "required-after:farseek@$farseekDependency"
 }
 
-archivesBaseName = project.projectDir.name
 version = modVersion
 
-jar {
-    manifest {
-        attributes "FMLCorePlugin": coreModClass
-        attributes "FMLCorePluginContainsFMLMod": "yeah it does"
-        attributes "FMLAT": accessTransformer
-    }
+jar.manifest {
+    attributes "FMLCorePlugin": coreModClass
+    attributes "FMLCorePluginContainsFMLMod": "yeah it does"
+    attributes "FMLAT": accessTransformer
 }
 
-curse {
-    projectId   = curseForgeId
-    releaseType = curseForgeReleaseType
-    changelog   = curseForgeChangelog
-    apiKey = project.hasProperty("curseForgeApiKey")? project.curseForgeApiKey: ""
+if(project.hasProperty("curseForgeApiKey")) {
+    apply plugin: "curseforge"
+    curse {
+        apiKey      = curseForgeApiKey
+        projectId   = curseForgeId
+        releaseType = curseForgeReleaseType
+        changelog   = curseForgeChangelog
+    }
+    if(farseekDependency != "") {
+        curse.relatedProject "Farseek": "requiredLibrary"
+    }
 }
