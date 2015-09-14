@@ -101,7 +101,7 @@ package object block {
         def isSediment     =     sedimentBlocks.contains(block)
         def isNaturalStone = naturalStoneBlocks.contains(block)
         def isGround = isSoil || isSediment || isNaturalStone
-        def isDiscreteObject = !(block.displayOnCreativeTab == tabBlock || (tfcLoaded && block.displayOnCreativeTab == TFCBuilding))
+        def isDiscreteObject = !(block.displayOnCreativeTab == tabBlock || (tfcLoaded && block.displayOnCreativeTab == TFC_BUILDING))
     }
 
     /** Returns a human-readable localized metadata-independent name for `block` on a best-effort basis.
