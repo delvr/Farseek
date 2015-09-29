@@ -35,7 +35,8 @@ object SaveHandlerExtensions {
                 val existingWorldWarnings = missingWarningMods.map(mod => mod.name + ": " + mod.existingWorldWarning.get)
                 val warningsList = existingWorldWarnings.mkString("\n")
                 val warningMessage = s"The following mod(s) can cause issues with existing worlds:\n\n$warningsList\n\nIt is recommended to make backups of your world before proceeding.\n\nContinue?"
-                if(!StartupQuery.confirm(warningMessage)) StartupQuery.abort()
+                if(StartupQuery.confirm(warningMessage)) super_readData(handler, worldInfo, properties, tags)
+                else StartupQuery.abort()
             } else
                 super_readData(handler, worldInfo, properties, tags)
         }
