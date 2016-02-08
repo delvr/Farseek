@@ -36,8 +36,8 @@ abstract class Structure[T <: StructureComponent](generator: StructureGenerator[
     }
 
     def build(area: PopulatingArea, random: Random) {
-        require(area.worldProvider == this.worldProvider)
-        intersectingComponents(area, _.paddedBox).foreach(_.build(area, random))
+        if(area.worldProvider == this.worldProvider)
+          intersectingComponents(area, _.paddedBox).foreach(_.build(area, random))
     }
 
     def intersectingComponents(area: BoundingBox, componentBox: StructureComponent => BoundingBox): Seq[T] =
