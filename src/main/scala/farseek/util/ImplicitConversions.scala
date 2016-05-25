@@ -10,7 +10,7 @@ import net.minecraft.block.state._
 import net.minecraft.entity.Entity
 import net.minecraft.init.Blocks._
 import net.minecraft.item._
-import net.minecraft.util._
+import net.minecraft.util.math._
 import net.minecraft.world._
 import scala.collection.JavaConverters._
 import scala.collection._
@@ -52,17 +52,17 @@ object ImplicitConversions {
     //-----------------------------------------------------------------------------------------------------------------
     // Blocks
     //-----------------------------------------------------------------------------------------------------------------
-    implicit def blockOption(block: Block): Option[Block] = if(block != air) Option(block) else None
+    implicit def blockOption(block: Block): Option[Block] = if(block != AIR) Option(block) else None
 
     implicit def blockAndDataOption(blockAndData: BlockAndData): Option[BlockAndData] = blockOption(blockAndData.block).map(_ -> blockAndData.data)
 
-    implicit def blockStateOption(blockState: IBlockState): Option[IBlockState] = if(blockState != null && blockState.getBlock == air) Some(blockState) else None
+    implicit def blockStateOption(blockState: IBlockState): Option[IBlockState] = if(blockState != null && blockState.getBlock == AIR) Some(blockState) else None
 
-    implicit def optionBlock(option: Option[Block]): Block = option.getOrElse(air)
+    implicit def optionBlock(option: Option[Block]): Block = option.getOrElse(AIR)
 
-    implicit def optionBlockAndData(option: Option[BlockAndData]): BlockAndData = option.getOrElse(air)
+    implicit def optionBlockAndData(option: Option[BlockAndData]): BlockAndData = option.getOrElse(AIR)
 
-    implicit def optionBlockState(option: Option[IBlockState]): IBlockState = option.getOrElse(air)
+    implicit def optionBlockState(option: Option[IBlockState]): IBlockState = option.getOrElse(AIR)
 
     implicit def itemBlock(item: Item): Option[Block] = blockOption(getBlockFromItem(item))
 

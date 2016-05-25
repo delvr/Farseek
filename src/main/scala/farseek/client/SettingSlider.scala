@@ -2,7 +2,7 @@ package farseek.client
 
 import farseek.config.NumericSetting
 import net.minecraft.client.Minecraft
-import net.minecraft.util.MathHelper._
+import net.minecraft.util.math.MathHelper._
 import org.lwjgl.opengl.GL11._
 
 /** A slider for a [[NumericSetting]].

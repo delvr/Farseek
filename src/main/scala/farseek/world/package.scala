@@ -14,7 +14,6 @@ import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.WorldType._
 import net.minecraft.world._
 import net.minecraft.world.biome.BiomeGenBase
-import net.minecraft.world.biome.BiomeGenBase._
 import net.minecraft.world.chunk.Chunk
 import scala.collection.SeqView
 
@@ -83,7 +82,7 @@ package object world {
     def blockOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[Block] =
         bac.xyzWorld(xyz).flatMap(xyz => blockOption(bac.getBlock(xyz.x, xyz.y, xyz.z)))
 
-    def blockAt   (xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockOptionAt(xyz).getOrElse(air)
+    def blockAt   (xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockOptionAt(xyz).getOrElse(AIR)
     def blockAbove(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAt(above(xyz))
     def blockBelow(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAt(below(xyz))
 
@@ -99,7 +98,7 @@ package object world {
     def blockAndDataOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[BlockAndData] =
         blockOptionAt(xyz).map(_ -> dataAt(xyz))
 
-    def blockAndDataAt   (xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataOptionAt(xyz).getOrElse((air, 0))
+    def blockAndDataAt   (xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataOptionAt(xyz).getOrElse((AIR, 0))
     def blockAndDataAbove(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(above(xyz))
     def blockAndDataBelow(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(below(xyz))
 
@@ -107,7 +106,7 @@ package object world {
     def blockStateOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[IBlockState] =
       bac.xyzWorld(xyz).flatMap(xyz => blockStateOption(bac.getBlockState(xyz)))
 
-    def blockStateAt   (xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataOptionAt(xyz).getOrElse((air, 0))
+    def blockStateAt   (xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataOptionAt(xyz).getOrElse((AIR, 0))
     def blockStateAbove(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(above(xyz))
     def blockStateBelow(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(below(xyz))
 
@@ -121,7 +120,7 @@ package object world {
     def biomeOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[BiomeGenBase] =
         bac.xyzWorld(xyz).map(xyz => blockAccessProvider(bac).getBiomeGenForCoords(xyz)) // NOT the client-only IBlockAccess.getBiomeGenForCoords()
 
-    def biomeAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = biomeOptionAt(xyz).getOrElse(ocean)
+    def biomeAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = biomeOptionAt(xyz).getOrElse(BiomeGenBase.getBiomeForId(0))
 
     def baseBiomeAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = biomeAt(xyz).base
 
@@ -141,7 +140,7 @@ package object world {
     /** Sets `block` at `xyz` to air if coordinates are valid. */
     def deleteBlockAt[T <: IBlockAccess](xyz: XYZ, notifyNeighbors: Boolean = true)
                                         (implicit bac: T, bw: BlockWriteAccess[T], cs: CoordinateSystem = AbsoluteCoordinates) =
-        setBlockAt(xyz, air, 0, notifyNeighbors)
+        setBlockAt(xyz, AIR, 0, notifyNeighbors)
 
     /** Sets TileEntity `entity` at `xyz` if coordinates are valid. */
     def setTileEntityAt[T <: IBlockAccess](xyz: XYZ, entity: TileEntity)
@@ -226,15 +225,15 @@ package object world {
 
     /** Returns true if water freezes at `xyz`.*/
     def isFreezing(xyz: XYZ)(implicit w: World): Boolean = {
-        biomeAt(xyz).getFloatTemperature(xyz) <= 0.15f && w.getLightFor(EnumSkyBlock.BLOCK, xyz) <= 11 - blockAt(xyz).getLightOpacity
+        biomeAt(xyz).getFloatTemperature(xyz) <= 0.15f && w.getLightFor(EnumSkyBlock.BLOCK, xyz) <= 10
     }
 
     /** Returns true an entity of class `entityClass` is present inside the full-block bounding box at `xyz`. */
     def entityPresent(xyz: XYZ, entityClass: Class[_ <: Entity])(implicit w: World): Boolean =
-        w.getEntitiesWithinAABB(entityClass, stone.getCollisionBoundingBox(w, xyz, stone.getDefaultState)).nonEmpty
+        w.getEntitiesWithinAABB(entityClass, STONE.getCollisionBoundingBox(STONE.getDefaultState, w, xyz)).nonEmpty
 
     /** Breaks block at `xyz` into its item (if any) and replaces it with air. */
-    def break(xyz: XYZ)(implicit w: World): Boolean = displace(xyz, air)
+    def break(xyz: XYZ)(implicit w: World): Boolean = displace(xyz, AIR)
 
     /** Breaks block at `xyz` into its item (if any) and replaces it with `block`. */
     def displace(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true)(implicit w: World): Boolean = {

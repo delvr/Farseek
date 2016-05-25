@@ -2,8 +2,8 @@ package farseek
 
 import farseek.world.Direction
 import java.util.Random
-import net.minecraft.util.MathHelper._
-import net.minecraft.util._
+import net.minecraft.util.math.MathHelper._
+import net.minecraft.util.math._
 import scala.math._
 import scala.reflect.ClassTag
 
@@ -120,11 +120,11 @@ package object util {
         def debug = s"tp $x $y $z"
     }
 
-    /** Value class for [[Vec3]] 3D vectors with utility methods.
+    /** Value class for [[Vec3d]] 3D vectors with utility methods.
       * @author Vectron himself, in the First Age of Vectron. */
-    implicit class Vectron(val vec: Vec3) extends AnyVal {
-        def +(other: Vec3) = vec.add(other)
-        def -(other: Vec3) = vec.subtract(other)
+    implicit class Vectron(val vec: Vec3d) extends AnyVal {
+        def +(other: Vec3d) = vec.add(other)
+        def -(other: Vec3d) = vec.subtract(other)
         def praise() { println("PRAISE VECTRON") }
     }
 }

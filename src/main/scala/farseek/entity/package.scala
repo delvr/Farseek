@@ -1,7 +1,7 @@
 package farseek
 
 import net.minecraft.entity.Entity
-import net.minecraft.util.MathHelper._
+import net.minecraft.util.math.MathHelper._
 
 /** Utility methods and value classes related to [[Entity]] objects.
   * @author delvr

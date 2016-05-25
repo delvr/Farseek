@@ -5,8 +5,8 @@ apply plugin: "scala"
 
 apply plugin: "net.minecraftforge.gradle.forge"
 minecraft {
-    version = "1902"
-    mappings = "stable_22"
+    version = "1904"
+    mappings = "snapshot_20160514"
 }
 
 task addLibraryTransformers {

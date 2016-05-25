@@ -46,15 +46,15 @@ class StructureGenerationChunkProvider(val worldProvider: WorldProvider) extends
     // "real" chunk is ready with all structures in range, so we don't go there again
     // Note that since we don't recreate structures on world load, reloaded chunks can be "generated through" and won't be unloaded, but this should remain a small number
     @SubscribeEvent def onPrePopulateChunk(event: PopulateChunkEvent.Pre) {
-        if(event.world.provider == this.worldProvider)
-            loadedChunks.remove(event.chunkX, event.chunkZ)
+        if(event.getWorld.provider == this.worldProvider)
+            loadedChunks.remove(event.getChunkX, event.getChunkZ)
     }
 
     @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
-        if(event.world.provider == this.worldProvider) {
+        if(event.getWorld.provider == this.worldProvider) {
             debug(s"Removing structure generation chunk provider for world $worldProvider")
             EVENT_BUS.unregister(this)
-            StructureGenerationChunkProvider.remove(event.world.provider)
+            StructureGenerationChunkProvider.remove(event.getWorld.provider)
         }
     }
 }

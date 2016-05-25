@@ -1,7 +1,7 @@
 package farseek.world
 
 import farseek.util._
-import net.minecraft.util.BlockPos
+import net.minecraft.util.math.BlockPos
 
 /** A directional offset in the X/Y/Z axes.
   * @author delvr

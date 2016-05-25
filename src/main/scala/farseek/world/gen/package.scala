@@ -17,14 +17,13 @@ import scala.collection.mutable
 package object gen {
 
     type BoundingBox = StructureBoundingBox
-    type ChunkGenerator = IChunkProvider
 
     val ChunkSize = 16
     val ChunkArea = ChunkSize * ChunkSize
     val iChunkMax = ChunkSize - 1
 
-    /** Maps [[ChunkGenerator]]s with the first field of [[World]] type or subtype declared in their class. */
-    val chunkGeneratorWorldClassFields = mutable.Map[Class[_ <: ChunkGenerator], Field]().withDefault(classFields[World](_).head)
+    /** Maps [[IChunkGenerator]]s with the first field of [[World]] type or subtype declared in their class. */
+    val chunkGeneratorWorldClassFields = mutable.Map[Class[_ <: IChunkGenerator], Field]().withDefault(classFields[World](_).head)
 
     def chunkRandom(xChunk: Int, zChunk: Int)(implicit w: WorldProvider): Random = {
         val worldSeed = w.getSeed

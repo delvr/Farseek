@@ -9,7 +9,7 @@ import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
 import net.minecraftforge.common.MinecraftForge._
-import net.minecraftforge.event.terraingen.ChunkProviderEvent.ReplaceBiomeBlocks
+import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks
 import net.minecraftforge.event.terraingen._
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -28,16 +28,16 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     EVENT_BUS.register(this)
 
     @SubscribeEvent def onChunkGeneration(event: ReplaceBiomeBlocks) {
-      val world =
-        if(event.world != null) event.world
-        else chunkGeneratorWorldClassFields(event.chunkProvider.getClass).value[World](event.chunkProvider)
-      onChunkGeneration(world.asInstanceOf[WorldServer], event.chunkProvider, event.x, event.z, event.primer)
+        val world =
+            if(event.getWorld != null) event.getWorld
+            else chunkGeneratorWorldClassFields(event.getGenerator.getClass).value[World](event.getGenerator)
+        onChunkGeneration(world.asInstanceOf[WorldServer], event.getGenerator, event.getX, event.getZ, event.getPrimer)
     }
 
-    def onChunkGeneration(world: WorldServer, generator: IChunkProvider, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
-      if(world.getDimensionId == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
-        generator == world.theChunkProviderServer.serverChunkGenerator) // Don't recurse events when generating for structures
-        generate(xChunk, zChunk, primer)(StructureGenerationChunkProvider(world.provider))
+    def onChunkGeneration(world: WorldServer, generator: IChunkGenerator, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
+      if(world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
+          generator == world.getChunkProvider.chunkGenerator) // Don't recurse events when generating for structures
+              generate(xChunk, zChunk, primer)(StructureGenerationChunkProvider(world.provider))
     }
 
     protected def generate(xChunk: Int, zChunk: Int, primer: ChunkPrimer)(implicit worldAccess: IBlockAccess) {
@@ -45,7 +45,7 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
             zStructureChunk <- zChunk - chunksRange to zChunk + chunksRange) {
             if(!structures.contains(xStructureChunk, zStructureChunk)) {
                 implicit val random = chunkRandom(xStructureChunk, zStructureChunk)(worldAccess.worldProvider)
-                val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,            (zStructureChunk - chunksRange)*ChunkSize,
+                val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,             (zStructureChunk - chunksRange)*ChunkSize,
                                             (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
                 val structureOption = createStructure(bounds).flatMap { structure =>
                     structure.generate(worldAccess, random)
@@ -66,8 +66,8 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     protected def createStructure(bounds: BoundingBox)(implicit worldAccess: IBlockAccess, random: Random): Option[T]
 
     @SubscribeEvent def onPrePopulateChunk(event: PopulateChunkEvent.Pre) {
-        if(event.world.getDimensionId == this.dimensionId)
-            build(event.chunkX, event.chunkZ)(event.world.asInstanceOf[WorldServer], event.rand)
+        if(event.getWorld.getDimension == this.dimensionId)
+            build(event.getChunkX, event.getChunkZ)(event.getWorld.asInstanceOf[WorldServer], event.getRand)
     }
 
     protected def build(xChunk: Int, zChunk: Int)(implicit world: WorldServer, random: Random) {
@@ -79,7 +79,7 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     }
 
     @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
-        if(!event.world.isRemote && event.world.getDimensionId == this.dimensionId)
+        if(!event.getWorld.isRemote && event.getWorld.getDimension == this.dimensionId)
             structures.clear()
     }
 }

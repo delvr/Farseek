@@ -5,6 +5,7 @@ import farseek.util._
 import net.minecraft.block.Block
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util._
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world._
 import net.minecraft.world.chunk.Chunk
 import net.minecraftforge.fml.relauncher.Side._
@@ -22,13 +23,16 @@ trait BlockAccess extends IBlockAccess {
     @deprecated(message = "Use validAt(XYZ)", since = "1.0.7")
     def validAt(xz: XZ): Boolean
 
-    def isAirBlock(pos: BlockPos) = getBlockState(pos).isAir(this, pos)
+    def isAirBlock(pos: BlockPos) = {
+      val state = getBlockState(pos)
+        state.getBlock.isAir(state, this, pos)
+    }
 
     def isSideSolid(pos: BlockPos, side: EnumFacing, default: Boolean) = getBlockState(pos).isSideSolid(this, pos, side)
 
     def getStrongPower(pos: BlockPos, direction: EnumFacing) = {
       val state = getBlockState(pos)
-      state.getBlock.getStrongPower(this, pos, state, direction)
+      state.getBlock.getStrongPower(state, this, pos, direction)
     }
 
     def getBlockState(pos: BlockPos) = getBlock(pos.getX, pos.getY, pos.getZ)
@@ -66,9 +70,9 @@ trait ChunkAccess extends BlockAccess {
 
     def chunkAt(x: Int, z: Int): Chunk
 
-    def getBlock        (x: Int, y: Int, z: Int) = chunkAt(x, z).getBlock(x, y, z)
+    def getBlock        (x: Int, y: Int, z: Int) = chunkAt(x, z).getBlockState(x, y, z)
 
-    def getBlockMetadata(x: Int, y: Int, z: Int) = chunkAt(x, z).getBlockMetadata(x, y, z)
+    def getBlockMetadata(x: Int, y: Int, z: Int) = chunkAt(x, z).getBlockState(x, y, z)
 
     def getTileEntity   (x: Int, y: Int, z: Int) = chunkAt(x, z).getTileEntity((x, y, z), Chunk.EnumCreateEntityType.IMMEDIATE)
 }
