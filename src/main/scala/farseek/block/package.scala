@@ -1,10 +1,6 @@
 package farseek
 
-import com.bioxx.tfc.Core.TFCTabs._
-import com.bioxx.tfc.Core.TFC_Core
-import com.bioxx.tfc.Core.TFC_Core._
 import farseek.util.ImplicitConversions._
-import farseek.util._
 import net.minecraft.block.Block._
 import net.minecraft.block._
 import net.minecraft.block.material.Material
@@ -54,18 +50,16 @@ package object block {
     /** Blocks from [[allBlocks]] for which the best harvesting tool is the shovel. */
     lazy val granularBlocks: Set[Block] = {
         Class.forName(classOf[ForgeHooks].getName) // Ensure static initializer execution
-        allBlocks.filter(block => block.isSolid && block.getHarvestTool(0) == "shovel")
+        allBlocks.filter(block => block.isSolid && block.getHarvestTool(block.getDefaultState) == "shovel")
     }
 
-    /** Blocks from [[granularBlocks]] that have ground or grass as material.
-      * (For TFC, filters with [[TFC_Core.isSoil]] instead). */
+    /** Blocks from [[granularBlocks]] that have ground or grass as material. */
     lazy val soilBlocks: Set[Block] = granularBlocks.filter(block =>
-        if(tfcLoaded) isSoil(block) else block.getMaterial == Material.ground || block.getMaterial == Material.grass)
+        block.getMaterial == Material.ground || block.getMaterial == Material.grass)
 
-    /** Blocks from [[granularBlocks]] that have clay or sand (this includes gravel) as material.
-      * (For TFC, also includes those for which [[TFC_Core.isGravel]] is `true`). */
+    /** Blocks from [[granularBlocks]] that have clay or sand (this includes gravel) as material. */
     lazy val sedimentBlocks: Set[Block] = granularBlocks.filter(block =>
-        block.getMaterial == Material.sand || block.getMaterial == Material.clay || (tfcLoaded && isGravel(block)))
+        block.getMaterial == Material.sand || block.getMaterial == Material.clay)
 
     /** Blocks from the Forge ore dictionary registered as "stone" or "standstone" or any string starting with "ore",
       * as well as the specific blocks hardened clay, stained hardened clay, netherrack, End stone and bedrock. */
@@ -91,17 +85,17 @@ package object block {
         def isSolid = block.getMaterial.blocksMovement
         def isLiquid = block.getMaterial.isLiquid
         def isSolidOrLiquid = isSolid || isLiquid
-        def isGrass  = block == grass  || (tfcLoaded && TFC_Core.isGrass (block))
-        def isDirt   = block == dirt   || (tfcLoaded && TFC_Core.isDirt  (block))
-        def isClay   = block == clay   || (tfcLoaded && TFC_Core.isClay  (block))
-        def isSand   = block == sand   || (tfcLoaded && TFC_Core.isSand  (block))
-        def isGravel = block == gravel || (tfcLoaded && TFC_Core.isGravel(block))
+        def isGrass  = block == grass
+        def isDirt   = block == dirt
+        def isClay   = block == clay
+        def isSand   = block == sand
+        def isGravel = block == gravel
         def isGranular     =     granularBlocks.contains(block)
         def isSoil         =         soilBlocks.contains(block)
         def isSediment     =     sedimentBlocks.contains(block)
         def isNaturalStone = naturalStoneBlocks.contains(block)
         def isGround = isSoil || isSediment || isNaturalStone
-        def isDiscreteObject = !(block.displayOnCreativeTab == tabBlock || (tfcLoaded && block.displayOnCreativeTab == TFC_BUILDING))
+        def isDiscreteObject = !(block.displayOnCreativeTab == tabBlock)
     }
 
     /** Returns a human-readable localized metadata-independent name for `block` on a best-effort basis.

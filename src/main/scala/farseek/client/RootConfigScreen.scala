@@ -1,10 +1,10 @@
 package farseek.client
 
-import cpw.mods.fml.client.GuiModList
-import cpw.mods.fml.common.ModContainer
 import farseek.FarseekBaseMod
 import farseek.util.Reflection._
 import net.minecraft.client.gui.GuiScreen
+import net.minecraftforge.fml.client.GuiModList
+import net.minecraftforge.fml.common.ModContainer
 
 /** The root configuration screen for a mod's top-level configuration category.
   * @author delvr

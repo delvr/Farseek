@@ -1,8 +1,8 @@
 package farseek.client
 
-import cpw.mods.fml.client.IModGuiFactory._
-import cpw.mods.fml.client._
 import net.minecraft.client.Minecraft
+import net.minecraftforge.fml.client.IModGuiFactory
+import net.minecraftforge.fml.client.IModGuiFactory.RuntimeOptionCategoryElement
 
 /** An [[IModGuiFactory]] implementation that defines a mod's [[RootConfigScreen]].
   * @author delvr

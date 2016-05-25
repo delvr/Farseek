@@ -1,7 +1,7 @@
 package farseek.core
 
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin
 import net.minecraft.launchwrapper._
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin
 
 /** Convenience base class for Farseek core mods.
   * @author delvr

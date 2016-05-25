@@ -1,6 +1,7 @@
 package farseek.world
 
 import farseek.util._
+import net.minecraft.util.BlockPos
 
 /** A directional offset in the X/Y/Z axes.
   * @author delvr
@@ -51,6 +52,7 @@ object Direction {
 
     def neighbor(x: Int,         z: Int, d: Direction): XZ  = (x + d.x,          z + d.z)
     def neighbor(x: Int, y: Int, z: Int, d: Direction): XYZ = (x + d.x, y + d.y, z + d.z)
+    def neighbor(pos: BlockPos, d: Direction): BlockPos = pos.add(d.x, d.y, d.z)
 
     def       neighbors(x: Int, z: Int): Seq[XZ] = CardinalDirections.map(neighbor(x, z, _))
     def cornerNeighbors(x: Int, z: Int): Seq[XZ] =  OrdinalDirections.map(neighbor(x, z, _))
@@ -59,4 +61,8 @@ object Direction {
     def       neighbors(x: Int, y: Int, z: Int): Seq[XYZ] = CardinalDirections.map(neighbor(x, y, z, _))
     def cornerNeighbors(x: Int, y: Int, z: Int): Seq[XYZ] =  OrdinalDirections.map(neighbor(x, y, z, _))
     def    allNeighbors(x: Int, y: Int, z: Int): Seq[XYZ] =  CompassDirections.map(neighbor(x, y, z, _))
+
+    def       neighbors(pos: BlockPos): Seq[BlockPos] = CardinalDirections.map(neighbor(pos, _))
+    def cornerNeighbors(pos: BlockPos): Seq[BlockPos] =  OrdinalDirections.map(neighbor(pos, _))
+    def    allNeighbors(pos: BlockPos): Seq[BlockPos] =  CompassDirections.map(neighbor(pos, _))
 }

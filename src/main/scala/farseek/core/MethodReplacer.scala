@@ -1,11 +1,11 @@
 package farseek.core
 
 import farseek.util.Reflection._
-import org.objectweb.asm.Label
-import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.Type._
-import org.objectweb.asm.commons.GeneratorAdapter
-import org.objectweb.asm.commons.GeneratorAdapter._
+import jdk.internal.org.objectweb.asm.Label
+import jdk.internal.org.objectweb.asm.Opcodes._
+import jdk.internal.org.objectweb.asm.Type._
+import jdk.internal.org.objectweb.asm.commons.GeneratorAdapter
+import jdk.internal.org.objectweb.asm.commons.GeneratorAdapter._
 import scala.collection.mutable
 
 /** A [[ClassPatcher]] that replaces any method matching the provided [[MethodReplacement]] with an implementation

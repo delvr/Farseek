@@ -1,47 +1,74 @@
-apply plugin: "idea"
-apply plugin: "curseforge"
+// ---------------------------------------------------------------------------------------------------------------------
+// Decompile
+// ---------------------------------------------------------------------------------------------------------------------
+apply plugin: "scala"
 
-idea {
-    module { excludeDirs += files(".idea", "docs", "gradle", "libs", "run-client", "run-server") }
+apply plugin: "net.minecraftforge.gradle.forge"
+minecraft {
+    version = "1902"
+    mappings = "stable_22"
 }
 
 task addLibraryTransformers {
     fileTree(dir: "libs", include: "*.jar").each { File jar ->
         zipTree(jar).each { File file ->
             if(file.name.endsWith("_at.cfg")) {
-                println("Found AccessTransformer in library: ${file.name}")
-                deobfBinJar.addTransformer(file)
-                deobfuscateJar.addTransformer(file)
+                deobfMcMCP.addAt(file)
+                deobfMcSRG.addAt(file)
             }
         }
     }
 }
-
 tasks.setupDecompWorkspace.dependsOn(addLibraryTransformers)
 
-ext.modSourceFile = "${modClass.replace('.', '/')}.scala"
+apply plugin: "idea"
+idea.module.excludeDirs += files(".idea", "gradle", "libs", "run")
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Run
+// ---------------------------------------------------------------------------------------------------------------------
 minecraft {
-    version = forgeVersion
-    replaceIn modSourceFile
-        replace "SNAPSHOT", modVersion
-        replace "required-after:farseek", "required-after:farseek@$farseekDependency"
+    runDir = "run"
+    clientJvmArgs += "-Dfml.coreMods.load=farseek.core.FarseekCoreMod,$coreModClass"
+    serverJvmArgs += "-Dfml.coreMods.load=farseek.core.FarseekCoreMod,$coreModClass"
 }
 
-archivesBaseName = project.projectDir.name
+// ---------------------------------------------------------------------------------------------------------------------
+// Build
+// ---------------------------------------------------------------------------------------------------------------------
 version = modVersion
 
-jar {
-    manifest {
-        attributes "FMLCorePlugin": coreModClass
-        attributes "FMLCorePluginContainsFMLMod": "yeah it does"
-        attributes "FMLAT": accessTransformer
-    }
+minecraft {
+    replaceIn "${modClass.replace('.', '/')}.scala"
+    replace "@Mod(", "@Mod(version=\"$modVersion\", dependencies=\"required-after:$modDependencies\", "
 }
 
-curse {
-    projectId   = curseForgeId
-    releaseType = curseForgeReleaseType
-    changelog   = curseForgeChangelog
-    apiKey = project.hasProperty("curseForgeApiKey")? project.curseForgeApiKey: ""
+jar.manifest {
+    attributes "FMLAT": accessTransformer
+    attributes "FMLCorePlugin": coreModClass
+    attributes "FMLCorePluginContainsFMLMod": "affirmative"
+}
+
+task deobfJar(type: Jar) {
+    classifier = "deobf"
+    from sourceSets.main.output
+    from "common.gradle"
+}
+tasks.jar.dependsOn("deobfJar")
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Release
+// ---------------------------------------------------------------------------------------------------------------------
+if(project.hasProperty("curseForgeApiKey")) {
+    apply plugin: "com.matthewprenger.cursegradle"
+    curseforge {
+        apiKey = project.curseForgeApiKey
+        project {
+            id = curseForgeId
+            releaseType = curseForgeReleaseType
+            changelog = file("changelog.md")
+            changelogType = "markdown"
+            if(project.name != "Farseek") relations { requiredLibrary "farseek" }
+        }
+    }
 }

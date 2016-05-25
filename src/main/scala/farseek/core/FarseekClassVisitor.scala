@@ -1,16 +1,16 @@
 package farseek.core
 
-import cpw.mods.fml.relauncher.FMLLaunchHandler._
-import cpw.mods.fml.relauncher.Side._
 import farseek.util.Logging
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes._
+import jdk.internal.org.objectweb.asm.MethodVisitor
+import jdk.internal.org.objectweb.asm.Opcodes._
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler._
+import net.minecraftforge.fml.relauncher.Side._
 
 /** A [[ClassPatcher]] that applies a [[SuperCallFixingMethodVisitor]] to each method.
   * On the server side, also removes any method with a parameter or return value from
-  * [[cpw.mods.fml.relauncher.SideOnly]]-annotated classes in the net.minecraft.client.* packages.
-  * This is meant for method overrides not annotated with [[cpw.mods.fml.relauncher.SideOnly]] that will be missed by
-  * Forge's [[cpw.mods.fml.common.asm.transformers.SideTransformer]] and can cause classloading errors when using reflection.
+  * [[net.minecraftforge.fml.relauncher.SideOnly]]-annotated classes in the net.minecraft.client.* packages.
+  * This is meant for method overrides not annotated with [[net.minecraftforge.fml.relauncher.SideOnly]] that will be missed by
+  * Forge's [[net.minecraftforge.fml.common.asm.transformers.SideTransformer]] and can cause classloading errors when using reflection.
   * @author delvr
   */
 class FarseekClassVisitor(bytecode: Array[Byte], className: String, replacements: Seq[MethodReplacement]) extends ClassPatcher(bytecode) {
@@ -35,7 +35,7 @@ object FarseekClassVisitor {
 
     private val MinecraftClientPackage = "net/minecraft/client/"
 
-    /** Set of classes in [[MinecraftClientPackage]] that lack a [[cpw.mods.fml.relauncher.SideOnly]] annotation. */
+    /** Set of classes in [[MinecraftClientPackage]] that lack a [[net.minecraftforge.fml.relauncher.SideOnly]] annotation. */
     private val UnannotatedClientClasses = Set("model/ModelBase", "model/ModelBox", "model/ModelRenderer",
         "model/PositionTextureVertex", "model/TexturedQuad").map(MinecraftClientPackage + _)
 }

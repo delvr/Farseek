@@ -1,12 +1,12 @@
 package farseek
 
-import cpw.mods.fml.common.Mod
+import net.minecraftforge.fml.common.Mod
 
 /** Non-core mod class for Farseek. `@Mod` annotation parameters for mod and dependencies versions should be replaced by the build process.
-  * @see [[farseek.core.FarseekCoreMod for core mod class.
+  * @see [[farseek.core.FarseekCoreMod]] for core mod class.
   * @author delvr
   */
-@Mod(modLanguage = "scala", modid = "farseek", version = "SNAPSHOT", dependencies = "required-after:Forge;after:terrafirmacraft")
+@Mod(modid = "Farseek", modLanguage = "scala")
 object FarseekMod extends FarseekBaseMod {
 
     val name = "Farseek"

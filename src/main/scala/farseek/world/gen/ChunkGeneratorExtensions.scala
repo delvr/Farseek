@@ -1,9 +1,9 @@
 package farseek.world.gen
 
-import cpw.mods.fml.common.registry.GameRegistry
 import farseek.core.ReplacedMethod
 import net.minecraft.world._
 import net.minecraft.world.chunk.IChunkProvider
+import net.minecraftforge.fml.common.registry.GameRegistry
 
 /** Method extensions related to chunk generation.
   * @author delvr

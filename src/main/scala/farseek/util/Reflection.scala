@@ -24,11 +24,11 @@ object Reflection {
 
     def classFieldValues[T: ClassTag](instance: Any): Seq[T] = classFields[T](instance.getClass).map(_.value[T](instance))
 
-    /** Recursively copies the values of all instance fields of `from` to `to`,
+    /** Recursively copies the values of all instance fields of `from` to `to`, excluding fields matching `fieldExclusion`,
       * starting with common class/superclass `startClass` and moving up through superclasses. */
-    def cloneObject[T: ClassTag](startClass: Class[_], from: T, to: T) {
-        startClass.getDeclaredFields.filterNot(field => isStatic(field.getModifiers)).foreach(_.copyValue(from, to))
-        Option(startClass.getSuperclass).foreach(cloneObject(_, from, to))
+    def cloneObject[T: ClassTag](startClass: Class[_], from: T, to: T, fieldExclusion: Field => Boolean = _ => false) {
+        startClass.getDeclaredFields.filterNot(field => isStatic(field.getModifiers) || fieldExclusion(field)).foreach(_.copyValue(from, to))
+        Option(startClass.getSuperclass).foreach(cloneObject(_, from, to, fieldExclusion))
     }
 
     /** Value class for [[Field]]s with utility methods. */

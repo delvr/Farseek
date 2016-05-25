@@ -1,13 +1,12 @@
 package farseek
 
-import com.bioxx.tfc.Blocks.Terrain.BlockCollapsible
-import com.bioxx.tfc.Core.TFC_Climate._
-import farseek.block.{BlockAndData, _}
+import farseek.block._
 import farseek.util.ImplicitConversions._
 import farseek.util.{XYZ, _}
-import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
 import farseek.world.biome._
 import farseek.world.gen.ChunkGeneratorExtensions._
+import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
+import net.minecraft.block.state._
 import net.minecraft.block.{BlockFalling, _}
 import net.minecraft.entity.Entity
 import net.minecraft.init.Blocks._
@@ -35,7 +34,7 @@ package object world {
     val EndDimensionId = 1
 
     /** Returns true if world generation is curently in the "populating" step (chunk decoration). */
-    def populating = BlockFalling.fallInstantly || (tfcLoaded && BlockCollapsible.fallInstantly) || populatingExtras
+    def populating = BlockFalling.fallInstantly || populatingExtras
 
     // ----------------------------------------------------------------------------------------------------------------
     // Y-ranges
@@ -104,15 +103,23 @@ package object world {
     def blockAndDataAbove(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(above(xyz))
     def blockAndDataBelow(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(below(xyz))
 
+    /** Returns the block and metadata at `xyz` if coordinates are valid and the block is not air. */
+    def blockStateOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[IBlockState] =
+      bac.xyzWorld(xyz).flatMap(xyz => blockStateOption(bac.getBlockState(xyz)))
+
+    def blockStateAt   (xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataOptionAt(xyz).getOrElse((air, 0))
+    def blockStateAbove(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(above(xyz))
+    def blockStateBelow(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = blockAndDataAt(below(xyz))
+
     /** Returns the tile entity at `xyz` if coordinates are valid and a TileEntity is present. */
     def tileEntityOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[TileEntity] =
-        bac.xyzWorld(xyz).flatMap(xyz => Option(bac.getTileEntity(xyz.x, xyz.y, xyz.z)))
+        bac.xyzWorld(xyz).flatMap(xyz => Option(bac.getTileEntity(xyz)))
 
     def tileEntityAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = tileEntityOptionAt(xyz).get
 
     /** Returns the biome at `xyz` if coordinates are valid. The Y-coordinate is ignored in this implementation. */
     def biomeOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[BiomeGenBase] =
-        bac.xyzWorld(xyz).map(xyz => blockAccessProvider(bac).getBiomeGenForCoords(xyz.x, xyz.z)) // NOT the client-only IBlockAccess.getBiomeGenForCoords()
+        bac.xyzWorld(xyz).map(xyz => blockAccessProvider(bac).getBiomeGenForCoords(xyz)) // NOT the client-only IBlockAccess.getBiomeGenForCoords()
 
     def biomeAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = biomeOptionAt(xyz).getOrElse(ocean)
 
@@ -156,7 +163,7 @@ package object world {
 
         private def chunkAt(x: Int, z: Int): Option[Chunk] = Option(bac match {
             case w: World       => w.getChunkFromBlockCoords(x, z)
-            case c: ChunkCache  => if(c.isEmpty) null else c.chunkArray(c.chunkX + (x >> 4))(c.chunkZ + (z >> 4))
+            case c: ChunkCache  => c.chunkArray(c.chunkX + (x >> 4))(c.chunkZ + (z >> 4))
             case c: ChunkAccess => c.chunkAt(x, z)
             case _ => null
         })
@@ -184,6 +191,23 @@ package object world {
             case Some(chunk) => chunk.getTopFilledSegment + 15 // Optimization where possible
             case None => yMax
         }
+
+        def getBlock(x: Int, y: Int, z: Int): Block = bac.getBlockState(x, y, z)
+
+        def getBlockMetadata(x: Int, y: Int, z: Int): Int = bac.getBlockState(x, y, z)
+
+        def getTileEntity(x: Int, y: Int, z: Int): TileEntity = bac.getTileEntity(x, y, z)
+    }
+
+    /** Value class for [[World]]s with utility methods. */
+    implicit class WorldValue(val world: World) extends AnyVal {
+
+      def setBlockAt(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true): Boolean =
+        world.setBlockState((xyz.x, xyz.y, xyz.z), (block, data), if(notifyNeighbors) 3 else 2)
+
+      def setTileEntityAt(xyz: XYZ, entity: TileEntity): Boolean = {
+        world.setTileEntity((xyz.x, xyz.y, xyz.z), entity); true
+      }
     }
 
     /** Value class for [[WorldProvider]]s with utility methods. */
@@ -192,7 +216,7 @@ package object world {
 
         def lavaLevel: Option[Int] =
             if(provider.isSurfaceWorld && provider.terrainType != FLAT) Some(9)
-            else if(provider.isHellWorld) Some(31)
+            else if(provider.doesWaterVaporize) Some(31)
             else None
     }
 
@@ -200,27 +224,22 @@ package object world {
     // World-specific
     // ----------------------------------------------------------------------------------------------------------------
 
-    /** Returns true if water freezes at `xyz`. TFC-compatible. */
+    /** Returns true if water freezes at `xyz`.*/
     def isFreezing(xyz: XYZ)(implicit w: World): Boolean = {
-        val (x, y, z) = xyz
-        if(tfcLoaded) getHeightAdjustedTemp(w, x, y, z) < 0f
-        else biomeAt(xyz).getFloatTemperature(x, y, z) <= 0.15f &&
-                w.getSavedLightValue(EnumSkyBlock.Block, x, y, z) <= 11 - blockAt(xyz).getLightOpacity
+        biomeAt(xyz).getFloatTemperature(xyz) <= 0.15f && w.getLightFor(EnumSkyBlock.BLOCK, xyz) <= 11 - blockAt(xyz).getLightOpacity
     }
 
     /** Returns true an entity of class `entityClass` is present inside the full-block bounding box at `xyz`. */
-    def entityPresent(xyz: XYZ, entityClass: Class[_ <: Entity])(implicit w: World): Boolean = {
-        val (x, y, z) = xyz
-        w.getEntitiesWithinAABB(entityClass, stone.getCollisionBoundingBoxFromPool(w, x, y, z)).nonEmpty
-    }
+    def entityPresent(xyz: XYZ, entityClass: Class[_ <: Entity])(implicit w: World): Boolean =
+        w.getEntitiesWithinAABB(entityClass, stone.getCollisionBoundingBox(w, xyz, stone.getDefaultState)).nonEmpty
 
     /** Breaks block at `xyz` into its item (if any) and replaces it with air. */
     def break(xyz: XYZ)(implicit w: World): Boolean = displace(xyz, air)
 
     /** Breaks block at `xyz` into its item (if any) and replaces it with `block`. */
     def displace(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true)(implicit w: World): Boolean = {
-        val (x, y, z) = xyz
-        blockAt(xyz).dropBlockAsItem(w, x, y, z, dataAt(xyz), 0)
+        val blockState = blockStateAt(xyz)
+        blockState.dropBlockAsItem(w, xyz, blockState, 0)
         setBlockAt(xyz, block, data, notifyNeighbors)
     }
 
@@ -228,6 +247,6 @@ package object world {
       * This the case during chunk population and where any chunks in a 65-block cube centered on `xyz` are missing. */
     def blocksFallInstantlyAt(xyz: XYZ)(implicit w: World) = {
         val (x, y, z) = xyz
-        BlockFalling.fallInstantly || (tfcLoaded && BlockCollapsible.fallInstantly) || !w.checkChunksExist(x - 32, y - 32, z - 32, x + 32, y + 32, z + 32)
+        BlockFalling.fallInstantly || !w.isAreaLoaded((x - 32, y - 32, z - 32), (x + 32, y + 32, z + 32))
     }
 }

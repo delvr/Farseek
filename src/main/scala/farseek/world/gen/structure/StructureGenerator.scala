@@ -1,18 +1,18 @@
 package farseek.world.gen.structure
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import farseek.util.ImplicitConversions._
 import farseek.util.Reflection._
 import farseek.util._
 import farseek.world._
 import farseek.world.gen._
 import java.util.Random
-import net.minecraft.block.Block
 import net.minecraft.world._
+import net.minecraft.world.chunk._
 import net.minecraftforge.common.MinecraftForge._
 import net.minecraftforge.event.terraingen.ChunkProviderEvent.ReplaceBiomeBlocks
 import net.minecraftforge.event.terraingen._
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import scala.collection.mutable
 
 /** Farseek implementation of world generation [[Structure]] generators, as an alternative to vanilla [[net.minecraft.world.gen.structure.MapGenStructure]]s.
@@ -28,25 +28,19 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     EVENT_BUS.register(this)
 
     @SubscribeEvent def onChunkGeneration(event: ReplaceBiomeBlocks) {
-        // Fix missing/invalid pieces from deprecated ReplaceBiomeBlocks constructors
-        val world =
-            if(event.world != null) event.world
-            else chunkGeneratorWorldClassFields(event.chunkProvider.getClass).value[World](event.chunkProvider)
-        val datas =
-            if(event.metaArray != null && event.metaArray.size == event.blockArray.size) event.metaArray
-            else null
-        onChunkGeneration(world.provider, event.chunkProvider, event.chunkX, event.chunkZ, event.blockArray, datas)
+      val world =
+        if(event.world != null) event.world
+        else chunkGeneratorWorldClassFields(event.chunkProvider.getClass).value[World](event.chunkProvider)
+      onChunkGeneration(world.asInstanceOf[WorldServer], event.chunkProvider, event.x, event.z, event.primer)
     }
 
-    def onChunkGeneration(worldProvider: WorldProvider, generator: ChunkGenerator, xChunk: Int, zChunk: Int, blocks: Array[Block], datas: Array[Byte]) {
-        if(worldProvider.dimensionId == this.dimensionId && !invalidWorldTypes.contains(worldProvider.terrainType)) {
-            implicit val worldAccess = StructureGenerationChunkProvider(worldProvider)
-            if(generator != worldAccess.generator) // Don't recurse events when generating for structures
-                generate(xChunk, zChunk, blocks, datas)
-        }
+    def onChunkGeneration(world: WorldServer, generator: IChunkProvider, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
+      if(world.getDimensionId == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
+        generator == world.theChunkProviderServer.serverChunkGenerator) // Don't recurse events when generating for structures
+        generate(xChunk, zChunk, primer)(StructureGenerationChunkProvider(world.provider))
     }
 
-    protected def generate(xChunk: Int, zChunk: Int, blocks: Array[Block], datas: Array[Byte])(implicit worldAccess: IBlockAccess) {
+    protected def generate(xChunk: Int, zChunk: Int, primer: ChunkPrimer)(implicit worldAccess: IBlockAccess) {
         for(xStructureChunk <- xChunk - chunksRange to xChunk + chunksRange;
             zStructureChunk <- zChunk - chunksRange to zChunk + chunksRange) {
             if(!structures.contains(xStructureChunk, zStructureChunk)) {
@@ -72,7 +66,7 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     protected def createStructure(bounds: BoundingBox)(implicit worldAccess: IBlockAccess, random: Random): Option[T]
 
     @SubscribeEvent def onPrePopulateChunk(event: PopulateChunkEvent.Pre) {
-        if(event.world.dimensionId == this.dimensionId)
+        if(event.world.getDimensionId == this.dimensionId)
             build(event.chunkX, event.chunkZ)(event.world.asInstanceOf[WorldServer], event.rand)
     }
 
@@ -85,7 +79,7 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     }
 
     @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
-        if(!event.world.isRemote && event.world.dimensionId == this.dimensionId)
+        if(!event.world.isRemote && event.world.getDimensionId == this.dimensionId)
             structures.clear()
     }
 }

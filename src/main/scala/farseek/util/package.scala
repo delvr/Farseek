@@ -1,13 +1,9 @@
 package farseek
 
-import java.lang.Package._
-import java.util.Random
-
 import farseek.world.Direction
+import java.util.Random
 import net.minecraft.util.MathHelper._
-import net.minecraft.util.Vec3
-import net.minecraft.util.Vec3._
-
+import net.minecraft.util._
 import scala.math._
 import scala.reflect.ClassTag
 
@@ -21,8 +17,6 @@ package object util {
 
     /** 3D coordinates (3-tuple of Ints) */
     type XYZ = (Int, Int, Int)
-
-    val tfcLoaded = getPackage("com.bioxx.tfc") != null
 
     def unsupported: Nothing = throw new UnsupportedOperationException
 
@@ -103,11 +97,34 @@ package object util {
         def debug = s"tp $x $y $z"
     }
 
+    /** Value class for [[BlockPos]] 3D coordinates with utility methods. */
+    implicit class PosValue(val pos: BlockPos) extends AnyVal {
+        def x = pos.getX
+        def y = pos.getY
+        def z = pos.getZ
+        def xz: XZ = (x, z)
+        def + (dy: Int): BlockPos = pos.up(dy)
+        def - (dy: Int): BlockPos = pos.down(dy)
+        def + (other: BlockPos) = pos.add(other)
+        def - (other: BlockPos) = pos.subtract(other)
+        def < (other: BlockPos) = y < other.y
+        def > (other: BlockPos) = y > other.y
+        def >= (other: BlockPos) = y >= other.y
+        def <= (other: BlockPos) = y <= other.y
+        def above: BlockPos = pos.up
+        def below: BlockPos = pos.down
+        def       neighbors: Seq[BlockPos] = Direction.neighbors(pos)
+        def cornerNeighbors: Seq[BlockPos] = Direction.cornerNeighbors(pos)
+        def    allNeighbors: Seq[BlockPos] = Direction.allNeighbors(pos)
+        def distanceTo(dest: BlockPos): Double = pos.distanceSq(dest)
+        def debug = s"tp $x $y $z"
+    }
+
     /** Value class for [[Vec3]] 3D vectors with utility methods.
       * @author Vectron himself, in the First Age of Vectron. */
     implicit class Vectron(val vec: Vec3) extends AnyVal {
-        def +(other: Vec3) = createVectorHelper(vec.xCoord + other.xCoord,  vec.yCoord + other.yCoord,  vec.zCoord + other.zCoord)
-        def -(other: Vec3) = createVectorHelper(vec.xCoord - other.xCoord,  vec.yCoord - other.yCoord,  vec.zCoord - other.zCoord)
+        def +(other: Vec3) = vec.add(other)
+        def -(other: Vec3) = vec.subtract(other)
         def praise() { println("PRAISE VECTRON") }
     }
 }

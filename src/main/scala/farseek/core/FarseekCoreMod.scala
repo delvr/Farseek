@@ -1,6 +1,6 @@
 package farseek.core
 
-import cpw.mods.fml.relauncher.IFMLLoadingPlugin._
+import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.SortingIndex
 
 /** Core mod class for Farseek.
   * @see [[farseek.FarseekMod]] for non-core mod class.
@@ -18,9 +18,9 @@ class FarseekCoreMod extends FarseekBaseCoreMod {
 class FarseekClassTransformer extends MethodReplacementTransformer {
 
     protected val methodReplacements = Seq(
-        MethodReplacement("cpw/mods/fml/common/FMLContainer", "readData", "(Lnet/minecraft/world/storage/SaveHandler;Lnet/minecraft/world/storage/WorldInfo;Ljava/util/Map;Lnet/minecraft/nbt/NBTTagCompound;)V",
+        MethodReplacement("net/minecraftforge/fml/common/FMLContainer", "readData", "(Lnet/minecraft/world/storage/SaveHandler;Lnet/minecraft/world/storage/WorldInfo;Ljava/util/Map;Lnet/minecraft/nbt/NBTTagCompound;)V",
             "farseek/world/storage/SaveHandlerExtensions/readData"),
-        MethodReplacement("cpw/mods/fml/common/registry/GameRegistry", "generateWorld", "(IILnet/minecraft/world/World;Lnet/minecraft/world/chunk/IChunkProvider;Lnet/minecraft/world/chunk/IChunkProvider;)V",
+        MethodReplacement("net/minecraftforge/fml/common/registry/GameRegistry", "generateWorld", "(IILnet/minecraft/world/World;Lnet/minecraft/world/chunk/IChunkProvider;Lnet/minecraft/world/chunk/IChunkProvider;)V",
             "farseek/world/gen/ChunkGeneratorExtensions/generateWorld")
     )
 }

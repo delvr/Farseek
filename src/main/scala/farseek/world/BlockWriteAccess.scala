@@ -28,10 +28,10 @@ object BlockWriteAccess {
     implicit object WorldBlockAccess extends BlockWriteAccess[World] {
 
         def setBlockAt(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true)(implicit w: World) =
-            w.setBlock (xyz.x, xyz.y, xyz.z, block, data, if(notifyNeighbors) 3 else 2)
+            w.setBlockAt(xyz, block, data, notifyNeighbors)
 
         def setTileEntityAt(xyz: XYZ, entity: TileEntity)(implicit w: World) = {
-            w.setTileEntity(xyz.x, xyz.y, xyz.z, entity); true
+            w.setTileEntityAt(xyz, entity)
         }
     }
 

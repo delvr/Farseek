@@ -1,5 +1,6 @@
 package farseek.world
 
+import farseek.util.ImplicitConversions._
 import farseek.util.Reflection._
 import farseek.util.{XYZ, _}
 import farseek.world.Direction._
@@ -68,7 +69,7 @@ package object gen {
         def contains(x: Int, z: Int) = box.isVecInside(x, yMin, z)
         def contains(x: Int, y: Int, z: Int) = box.isVecInside(x, y, z)
         def contains(xz: XZ): Boolean = contains(xz.xyz(yMin))
-        def contains(xyz: XYZ): Boolean = box.isVecInside(xyz.x, xyz.y, xyz.z)
+        def contains(xyz: XYZ): Boolean = box.isVecInside(xyz)
         def contains(otherBox: StructureBoundingBox) = otherBox.isWithin(box)
 
         def intersects(chunk: Chunk) = intersectsChunkAt(chunk.xPosition, chunk.zPosition)
@@ -96,6 +97,6 @@ package object gen {
             newBox
         }
 
-        def debug = s"tp ${box.getCenterX} ${box.getCenterY} ${box.getCenterZ}"
+        def debug = s"tp ${box.getCenter.getX} ${box.getCenter.getY} ${box.getCenter.getZ}"
     }
 }

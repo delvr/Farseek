@@ -1,6 +1,5 @@
 package farseek.world.gen.structure
 
-import cpw.mods.fml.common.eventhandler._
 import farseek.util.Reflection._
 import farseek.util._
 import farseek.world._
@@ -10,6 +9,7 @@ import net.minecraft.world.gen.structure.MapGenStructure
 import net.minecraftforge.common.MinecraftForge._
 import net.minecraftforge.event.terraingen.PopulateChunkEvent
 import net.minecraftforge.event.world.WorldEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import scala.collection.mutable
 
 /** A chunk provider for [[Structure]]s that contains a copy of a world's chunk generator and creates chunks _without_ structures.
@@ -39,7 +39,7 @@ class StructureGenerationChunkProvider(val worldProvider: WorldProvider) extends
 
     private def generateChunk(xChunk: Int, zChunk: Int) = {
         val chunk = generator.provideChunk(xChunk, zChunk)
-        chunk.isTerrainPopulated = true
+        chunk.setTerrainPopulated(true)
         chunk
     }
 

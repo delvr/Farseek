@@ -1,11 +1,14 @@
 package farseek.world
 
-import cpw.mods.fml.relauncher.Side._
-import cpw.mods.fml.relauncher.SideOnly
+import farseek.util.ImplicitConversions._
 import farseek.util._
+import net.minecraft.block.Block
+import net.minecraft.tileentity.TileEntity
+import net.minecraft.util._
 import net.minecraft.world._
 import net.minecraft.world.chunk.Chunk
-import net.minecraftforge.common.util.ForgeDirection
+import net.minecraftforge.fml.relauncher.Side._
+import net.minecraftforge.fml.relauncher.SideOnly
 
 /** An extension of [[IBlockAccess]] with some default implementations, and methods to access the [[WorldProvider]] and validate coordinates.
   * @author delvr
@@ -19,11 +22,24 @@ trait BlockAccess extends IBlockAccess {
     @deprecated(message = "Use validAt(XYZ)", since = "1.0.7")
     def validAt(xz: XZ): Boolean
 
-    def isAirBlock(x: Int, y: Int, z: Int) = getBlock(x, y, z).isAir(this, x, y, z)
+    def isAirBlock(pos: BlockPos) = getBlockState(pos).isAir(this, pos)
 
-    def isSideSolid(x: Int, y: Int, z: Int, side: ForgeDirection, default: Boolean) = getBlock(x, y, z).isSideSolid(this, x, y, z, side)
+    def isSideSolid(pos: BlockPos, side: EnumFacing, default: Boolean) = getBlockState(pos).isSideSolid(this, pos, side)
 
-    def isBlockProvidingPowerTo(x: Int, y: Int, z: Int, direction: Int) = getBlock(x, y, z).isProvidingStrongPower(this, x, y, z, direction)
+    def getStrongPower(pos: BlockPos, direction: EnumFacing) = {
+      val state = getBlockState(pos)
+      state.getBlock.getStrongPower(this, pos, state, direction)
+    }
+
+    def getBlockState(pos: BlockPos) = getBlock(pos.getX, pos.getY, pos.getZ)
+
+    def getTileEntity(pos: BlockPos) = getTileEntity(pos.getX, pos.getY, pos.getZ)
+
+    def getBlock(x: Int, y: Int, z: Int): Block
+
+    def getBlockMetadata(x: Int, y: Int, z: Int): Int
+
+    def getTileEntity(x: Int, y: Int, z: Int): TileEntity
 }
 
 /** A server-side [[BlockAccess]] where all client-only methods will throw an [[UnsupportedOperationException]].
@@ -31,10 +47,10 @@ trait BlockAccess extends IBlockAccess {
   */
 trait ServerBlockAccess extends BlockAccess {
 
-    @SideOnly(CLIENT) def getHeight = unsupported
+    @SideOnly(CLIENT) def getWorldType = unsupported
     @SideOnly(CLIENT) def extendedLevelsInChunkCache = unsupported
-    @SideOnly(CLIENT) def getBiomeGenForCoords(x: Int, z: Int) = unsupported
-    @SideOnly(CLIENT) def getLightBrightnessForSkyBlocks(x: Int, y: Int, z: Int, lightValue: Int) = unsupported
+    @SideOnly(CLIENT) def getBiomeGenForCoords(pos: BlockPos) = unsupported
+    @SideOnly(CLIENT) def getCombinedLight(pos: BlockPos, lightValue: Int) = unsupported
 }
 
 /** A [[BlockAccess]] where getters are delegated to the chunk returned by `chunkAt()`.
@@ -50,11 +66,11 @@ trait ChunkAccess extends BlockAccess {
 
     def chunkAt(x: Int, z: Int): Chunk
 
-    def getBlock        (x: Int, y: Int, z: Int) = chunkAt(x, z).getBlock        (x & 15, y, z & 15)
+    def getBlock        (x: Int, y: Int, z: Int) = chunkAt(x, z).getBlock(x, y, z)
 
-    def getBlockMetadata(x: Int, y: Int, z: Int) = chunkAt(x, z).getBlockMetadata(x & 15, y, z & 15)
+    def getBlockMetadata(x: Int, y: Int, z: Int) = chunkAt(x, z).getBlockMetadata(x, y, z)
 
-    def getTileEntity   (x: Int, y: Int, z: Int) = chunkAt(x, z).func_150806_e   (x & 15, y, z & 15)
+    def getTileEntity   (x: Int, y: Int, z: Int) = chunkAt(x, z).getTileEntity((x, y, z), Chunk.EnumCreateEntityType.IMMEDIATE)
 }
 
 /** A [[BlockAccess]] that wraps another `BlockAccess` and delegates all methods except `validAt()` to it.

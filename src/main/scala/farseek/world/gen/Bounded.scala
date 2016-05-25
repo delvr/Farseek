@@ -18,9 +18,9 @@ trait Bounded {
     def yMax = boundingBox.maxY
     def zMax = boundingBox.maxZ
 
-    def xCenter = boundingBox.getCenterX
-    def yCenter = boundingBox.getCenterY
-    def zCenter = boundingBox.getCenterZ
+    def xCenter = boundingBox.getCenter.getX
+    def yCenter = boundingBox.getCenter.getY
+    def zCenter = boundingBox.getCenter.getZ
 
     override def toString = s"${getClass.getSimpleName} $boundingBox"
 

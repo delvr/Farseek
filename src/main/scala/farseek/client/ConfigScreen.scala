@@ -1,16 +1,16 @@
 package farseek.client
 
-import cpw.mods.fml.client._
-import cpw.mods.fml.relauncher.Side._
-import cpw.mods.fml.relauncher.SideOnly
 import farseek.config._
 import farseek.util.ImplicitConversions._
 import farseek.util._
 import java.lang.System._
 import net.minecraft.client.gui._
 import net.minecraft.client.resources.I18n
+import net.minecraftforge.fml.client.FMLClientHandler
+import net.minecraftforge.fml.relauncher.SideOnly
 import scala.collection.mutable
 import scala.math._
+import net.minecraftforge.fml.relauncher.Side._
 
 /** A [[GuiScreen]] that displays configuration options for a [[ConfigCategory]].
   * @author delvr
@@ -52,7 +52,7 @@ abstract class ConfigScreen(parent: GuiScreen) extends GuiScreen {
         super.drawScreen(x, y, renderPartialTicks)
         if(abs(x - lastMouseX) <= 5 && abs(y - lastMouseY) <= 5) {
             if(currentTimeMillis >= mouseStillTime + 700) {
-                buttons.find(_.func_146115_a).foreach {
+                buttons.find(_.isMouseOver).foreach {
                     case control: SettingButton[_] =>
                         val x1 = 20
                         val tmp = height/6 - 5

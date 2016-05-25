@@ -1,34 +1,13 @@
 buildscript {
     repositories {
-        mavenCentral()
-        maven { name = "forge"   ; url = "http://files.minecraftforge.net/maven" }
-        maven { name = "sonatype"; url = "https://oss.sonatype.org/content/repositories/snapshots/" }
+        jcenter()
+        maven { url "http://files.minecraftforge.net/maven" }
+        maven { url "https://plugins.gradle.org/m2/" }
     }
-    dependencies { classpath "net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT" }
+    dependencies {
+        classpath "net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT"
+        classpath "gradle.plugin.com.matthewprenger:CurseGradle:1.0.7"
+    }
 }
 
-apply plugin: "scala"
-apply plugin: "forge"
-
-def commonGradle = "common.gradle"
-apply from: commonGradle
-
-minecraft {
-    replaceIn modSourceFile
-        replace "required-after:Forge", "required-after:Forge@$forgeDependency"
-        replace "after:terrafirmacraft", "after:terrafirmacraft@$tfcDependency"
-}
-
-task srcJar(type: Jar) {
-    appendix = "src"
-    from sourceSets.main.allSource
-    from commonGradle
-}
-
-task deobfJar(type: Jar) {
-    appendix = "deobf"
-    from sourceSets.main.output
-    from commonGradle
-}
-
-tasks.jar.dependsOn("srcJar", "deobfJar")
+apply from: "common.gradle"

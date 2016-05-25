@@ -1,8 +1,8 @@
 package farseek.core
 
 import farseek.util.Logging
-import org.objectweb.asm.ClassWriter._
-import org.objectweb.asm._
+import jdk.internal.org.objectweb.asm.ClassWriter._
+import jdk.internal.org.objectweb.asm.{ClassReader, _}
 
 /** Convenience base class for Farseek [[ClassVisitor]]s.
   * @author delvr

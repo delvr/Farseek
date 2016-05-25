@@ -1,11 +1,10 @@
 package farseek
 
-import cpw.mods.fml.common.Mod.EventHandler
-import cpw.mods.fml.common._
-import cpw.mods.fml.common.event._
 import farseek.config.ConfigCategory
 import farseek.util.Logging
-
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.common.Mod.EventHandler
+import net.minecraftforge.fml.common.event._
 import scala.collection.JavaConversions._
 
 /** Convenience base class for Farseek mods. Provides configuration and metadata support.

@@ -1,12 +1,11 @@
 package farseek.world.storage
 
-import cpw.mods.fml.common._
 import farseek.FarseekBaseMod
 import farseek.core.ReplacedMethod
 import farseek.util.ImplicitConversions._
 import net.minecraft.nbt._
 import net.minecraft.world.storage._
-
+import net.minecraftforge.fml.common._
 import scala.collection.mutable
 
 /** Method patches related to loading and saving worlds.
