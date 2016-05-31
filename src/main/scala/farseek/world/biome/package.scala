@@ -6,16 +6,16 @@ import net.minecraft.init.Blocks._
 import net.minecraft.world._
 import net.minecraft.world.biome._
 
-/** Utility methods and value classes related to [[BiomeGenBase]] objects.
+/** Utility methods and value classes related to [[Biome]] objects.
   * @author delvr
   */
 package object biome {
 
-    /** Value class for [[BiomeGenBase]] objects with utility methods. */
-    implicit class BiomeValue(val biome: BiomeGenBase) extends AnyVal {
+    /** Value class for [[Biome]] objects with utility methods. */
+    implicit class BiomeValue(val biome: Biome) extends AnyVal {
 
         /** Returns the base biome for a mutated biome, or the biome itself otherwise.*/
-        def base: BiomeGenBase = if(biome.isMutation) BiomeGenBase.getBiomeForId(BiomeGenBase.MUTATION_TO_BASE_ID_MAP.get(biome)) else biome
+        def base: Biome = if(biome.isMutation) Biome.getBiomeForId(Biome.MUTATION_TO_BASE_ID_MAP.get(biome)) else biome
     }
 
     /** Returns the vanilla grass block. */
@@ -42,8 +42,8 @@ package object biome {
         if(blockAbove(x, y, z) == STONE)
             STONE
         else baseBiomeAt(x, y, z) match {
-            case nether: BiomeGenHell => NETHERRACK
-            case end: BiomeGenEnd => END_STONE
+            case nether: BiomeHell => NETHERRACK
+            case end: BiomeEnd => END_STONE
             case biome =>
                 val top = blockStateData(biome.topBlock)
                 if(top == yellowSand) SANDSTONE

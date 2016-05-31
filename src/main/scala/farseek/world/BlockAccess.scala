@@ -53,7 +53,7 @@ trait ServerBlockAccess extends BlockAccess {
 
     @SideOnly(CLIENT) def getWorldType = unsupported
     @SideOnly(CLIENT) def extendedLevelsInChunkCache = unsupported
-    @SideOnly(CLIENT) def getBiomeGenForCoords(pos: BlockPos) = unsupported
+    @SideOnly(CLIENT) def getBiome(pos: BlockPos) = unsupported
     @SideOnly(CLIENT) def getCombinedLight(pos: BlockPos, lightValue: Int) = unsupported
 }
 

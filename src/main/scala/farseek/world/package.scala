@@ -13,7 +13,7 @@ import net.minecraft.init.Blocks._
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.world.WorldType._
 import net.minecraft.world._
-import net.minecraft.world.biome.BiomeGenBase
+import net.minecraft.world.biome.Biome
 import net.minecraft.world.chunk.Chunk
 import scala.collection.SeqView
 
@@ -117,10 +117,10 @@ package object world {
     def tileEntityAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = tileEntityOptionAt(xyz).get
 
     /** Returns the biome at `xyz` if coordinates are valid. The Y-coordinate is ignored in this implementation. */
-    def biomeOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[BiomeGenBase] =
-        bac.xyzWorld(xyz).map(xyz => blockAccessProvider(bac).getBiomeGenForCoords(xyz)) // NOT the client-only IBlockAccess.getBiomeGenForCoords()
+    def biomeOptionAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates): Option[Biome] =
+        bac.xyzWorld(xyz).map(xyz => blockAccessProvider(bac).getBiomeForCoords(xyz)) // NOT the client-only IBlockAccess.getBiomeGenForCoords()
 
-    def biomeAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = biomeOptionAt(xyz).getOrElse(BiomeGenBase.getBiomeForId(0))
+    def biomeAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = biomeOptionAt(xyz).getOrElse(Biome.getBiomeForId(0))
 
     def baseBiomeAt(xyz: XYZ)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = biomeAt(xyz).base
 

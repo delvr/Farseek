@@ -1,3 +1,7 @@
+def modName = project.name
+def modPackage = modName.toLowerCase()
+def coreModClass = "${modPackage}.core.${modName}CoreMod"
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Decompile
 // ---------------------------------------------------------------------------------------------------------------------
@@ -5,8 +9,8 @@ apply plugin: "scala"
 
 apply plugin: "net.minecraftforge.gradle.forge"
 minecraft {
-    version = "1904"
-    mappings = "snapshot_20160514"
+    version = forgeRevision
+    mappings = mcpMappings
 }
 
 task addLibraryTransformers {
@@ -27,24 +31,25 @@ idea.module.excludeDirs += files(".idea", "gradle", "libs", "run")
 // ---------------------------------------------------------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------------------------------------------------------
+def jvmArgs = "-Dfml.coreMods.load=farseek.core.FarseekCoreMod,$coreModClass"
 minecraft {
     runDir = "run"
-    clientJvmArgs += "-Dfml.coreMods.load=farseek.core.FarseekCoreMod,$coreModClass"
-    serverJvmArgs += "-Dfml.coreMods.load=farseek.core.FarseekCoreMod,$coreModClass"
+    clientJvmArgs += jvmArgs
+    serverJvmArgs += jvmArgs
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Build
 // ---------------------------------------------------------------------------------------------------------------------
-version = modVersion
+version = "${minecraft.version}-$modVersion"
 
 minecraft {
-    replaceIn "${modClass.replace('.', '/')}.scala"
-    replace "@Mod(", "@Mod(version=\"$modVersion\", dependencies=\"required-after:$modDependencies\", "
+    replaceIn "$modPackage/${modName}Mod.scala"
+    replace "@Mod(", "@Mod(version=\"$version\", dependencies=\"required-after:$modDependencies\", "
 }
 
 jar.manifest {
-    attributes "FMLAT": accessTransformer
+    attributes "FMLAT": "${modName}_at.cfg"
     attributes "FMLCorePlugin": coreModClass
     attributes "FMLCorePluginContainsFMLMod": "affirmative"
 }
@@ -59,16 +64,35 @@ tasks.jar.dependsOn("deobfJar")
 // ---------------------------------------------------------------------------------------------------------------------
 // Release
 // ---------------------------------------------------------------------------------------------------------------------
-if(project.hasProperty("curseForgeApiKey")) {
+def changeLog = file("changelog.md").text + """
+Built using [Forge](http://files.minecraftforge.net/maven/net/minecraftforge/forge/index_${minecraft.version}.html)
+${minecraft.forgeVersion} and [MCP mappings](http://export.mcpbot.bspk.rs) ${minecraft.mappings}.
+"""
+if(project.hasProperty("githubUser") && project.hasProperty("githubApiKey")) {
+    apply plugin: "co.riiid.gradle"
+    github {
+        owner = githubUser
+        token = githubApiKey
+        repo = modName
+        targetCommitish = minecraft.version
+        tagName = "v$version"
+        body = changeLog
+    }
+}
+if(project.hasProperty("curseForgeId") && project.hasProperty("curseForgeApiKey")) {
     apply plugin: "com.matthewprenger.cursegradle"
     curseforge {
         apiKey = project.curseForgeApiKey
         project {
             id = curseForgeId
             releaseType = curseForgeReleaseType
-            changelog = file("changelog.md")
+            changelog = changeLog
             changelogType = "markdown"
-            if(project.name != "Farseek") relations { requiredLibrary "farseek" }
+            if(modName != "Farseek") relations { requiredLibrary "farseek" }
         }
+    }
+    tasks.curseforge.doFirst {
+        mainArtifact.gameVersionStrings.remove("Java 6")
+        mainArtifact.gameVersionStrings.remove("Java 7")
     }
 }
