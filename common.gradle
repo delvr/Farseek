@@ -65,8 +65,7 @@ tasks.jar.dependsOn("deobfJar")
 // Release
 // ---------------------------------------------------------------------------------------------------------------------
 def changeLog = file("changelog.md").text + """
-Built using [Forge](http://files.minecraftforge.net/maven/net/minecraftforge/forge/index_${minecraft.version}.html)
-${minecraft.forgeVersion} and [MCP mappings](http://export.mcpbot.bspk.rs) ${minecraft.mappings}.
+Built using [Forge](http://files.minecraftforge.net/maven/net/minecraftforge/forge/index_${minecraft.version}.html) ${minecraft.forgeVersion} and [MCP mappings](http://export.mcpbot.bspk.rs) ${minecraft.mappings}.
 """
 if(project.hasProperty("githubUser") && project.hasProperty("githubApiKey")) {
     apply plugin: "co.riiid.gradle"
@@ -90,9 +89,5 @@ if(project.hasProperty("curseForgeId") && project.hasProperty("curseForgeApiKey"
             changelogType = "markdown"
             if(modName != "Farseek") relations { requiredLibrary "farseek" }
         }
-    }
-    tasks.curseforge.doFirst {
-        mainArtifact.gameVersionStrings.remove("Java 6")
-        mainArtifact.gameVersionStrings.remove("Java 7")
     }
 }
