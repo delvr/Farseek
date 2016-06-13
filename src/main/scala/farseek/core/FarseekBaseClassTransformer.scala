@@ -1,13 +1,12 @@
 package farseek.core
 
-import farseek.util.Logging
 import net.minecraft.launchwrapper._
 
 /** Farseek implementation of [[IClassTransformer]]. Validates that no net.minecraft classes are loaded during transformation.
   * Excludes all classes prefixed by entries in `excludedClassPrefixes`.
   * @author delvr
   */
-abstract class FarseekBaseClassTransformer extends IClassTransformer with Logging {
+abstract class FarseekBaseClassTransformer extends IClassTransformer with CoreLogging {
 
     private var transforming: Option[String] = None
 

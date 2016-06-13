@@ -20,7 +20,7 @@ class FarseekClassTransformer extends MethodReplacementTransformer {
     protected val methodReplacements = Seq(
         MethodReplacement("net/minecraftforge/fml/common/FMLContainer", "readData", "(Lnet/minecraft/world/storage/SaveHandler;Lnet/minecraft/world/storage/WorldInfo;Ljava/util/Map;Lnet/minecraft/nbt/NBTTagCompound;)V",
             "farseek/world/storage/SaveHandlerExtensions/readData"),
-        MethodReplacement("net/minecraftforge/fml/common/registry/GameRegistry", "generateWorld", "(IILnet/minecraft/world/World;Lnet/minecraft/world/chunk/IChunkProvider;Lnet/minecraft/world/chunk/IChunkProvider;)V",
+        MethodReplacement("net/minecraftforge/fml/common/registry/GameRegistry", "generateWorld", "(IILnet/minecraft/world/World;Lnet/minecraft/world/chunk/IChunkGenerator;Lnet/minecraft/world/chunk/IChunkProvider;)V",
             "farseek/world/gen/ChunkGeneratorExtensions/generateWorld")
     )
 }

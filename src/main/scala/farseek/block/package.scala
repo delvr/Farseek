@@ -108,14 +108,17 @@ package object block {
             val displayName = block.getLocalizedName
             if(displayName != name + ".name")
                 displayName
-            else getOreIDs(new ItemStack(block)).headOption match {
+            else {
+              val itemStack = new ItemStack(block)
+              (if(itemStack.getItem == null) None else getOreIDs(itemStack).headOption) match {
                 case Some(id) =>
-                    val dictionaryKey = getOreName(id)
-                    val dictionaryName = s"tile.$dictionaryKey.name"
-                    val dictionaryDisplayName = I18n.translateToLocal(dictionaryName)
-                    if(dictionaryDisplayName != dictionaryName) dictionaryDisplayName
-                    else dictionaryKey
+                  val dictionaryKey = getOreName(id)
+                  val dictionaryName = s"tile.$dictionaryKey.name"
+                  val dictionaryDisplayName = I18n.translateToLocal(dictionaryName)
+                  if(dictionaryDisplayName != dictionaryName) dictionaryDisplayName
+                  else dictionaryKey
                 case None => name.replace("tile.", "")
+              }
             }
         }
     }
