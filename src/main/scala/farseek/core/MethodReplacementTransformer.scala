@@ -8,15 +8,18 @@ abstract class MethodReplacementTransformer extends FarseekBaseClassTransformer 
     private var validated = false
 
     protected val excludedClassPrefixes: Set[String] = Set(
-        /* Exclude COFH world proxies, since COFH would duplicate our replacement methods
-           (by failing to recognize and delete the originals) when applying the proxy.
-           Source: https://github.com/CoFH/CoFHCore/blob/master/src/main/java/cofh/asm/ASMCore.java */
-        "skyboy/core/world/WorldProxy", "skyboy/core/world/WorldServerProxy",
+      /* Exclude COFH world proxies, since COFH would duplicate our replacement methods
+         (by failing to recognize and delete the originals) when applying the proxy.
+         Source: https://github.com/CoFH/CoFHCore/blob/master/src/main/java/cofh/asm/ASMCore.java */
+      "skyboy/core/world/WorldProxy", "skyboy/core/world/WorldServerProxy",
 
-        /* Exclude a LogisticsPipes class hierarchy containing a method with a client-only parameter we cannot delete in FarseekClassVisitor
-           because it's called from the server side and prevented from crashing only by using a null argument.
-           Source: https://github.com/RS485/LogisticsPipes/blob/mc17/common/logisticspipes/LogisticsPipes.java line 319 */
-        "logisticspipes/textures/Textures", "logisticspipes/proxy/interfaces/IProxy", "logisticspipes/proxy/side/ServerProxy"
+      /* Exclude class hierarchies containing method with a client-only parameters we cannot delete in FarseekClassVisitor
+         because it's called from the server side and prevented from crashing only by using null arguments. */
+      "logisticspipes/textures/Textures", "logisticspipes/proxy/interfaces/IProxy", "logisticspipes/proxy/side/ServerProxy",
+      "com/lordmau5/ffs/util/state/PropertyModel", "forestry/",
+
+      /* Exclude classes with @Optional interfaces that don't strip out implemented methods. */
+      "mcjty/immcraft/blocks/"
     )
 
     protected def methodReplacements: Seq[MethodReplacement]

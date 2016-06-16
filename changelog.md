@@ -1,2 +1,4 @@
-- Updated to Minecraft 1.9.
-- Updated to Forge 1904.
+- Fixed [a server-side crash with Forestry and Fancy Fluid Storage](https://github.com/delvr/Farseek/issues/10).
+- Fixed [a crash with ImmersiveCraft when not including optional mods](https://github.com/delvr/Streams/issues/17).
+- Fixed [a crash with Repose from modded blocks with null items](https://github.com/delvr/Streams/issues/16).
+- Fixed server-side log messages appearing in shell console instead of game logs.
