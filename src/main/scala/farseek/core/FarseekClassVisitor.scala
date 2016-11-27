@@ -1,67 +1,40 @@
 package farseek.core
 
 import farseek.util.Logging
-import jdk.internal.org.objectweb.asm.MethodVisitor
-import jdk.internal.org.objectweb.asm.Opcodes._
-import net.minecraftforge.fml.relauncher.FMLLaunchHandler._
-import net.minecraftforge.fml.relauncher.Side._
+import org.objectweb.asm.ClassWriter._
+import org.objectweb.asm.Opcodes._
+import org.objectweb.asm.Type._
+import org.objectweb.asm._
 
-/** A [[ClassPatcher]] that applies a [[SuperCallFixingMethodVisitor]] to each method.
-  * On the server side, also removes any method with a parameter or return value from
-  * [[net.minecraftforge.fml.relauncher.SideOnly]]-annotated classes in the net.minecraft.client.* packages.
-  * This is meant for method overrides not annotated with [[net.minecraftforge.fml.relauncher.SideOnly]] that will be missed by
-  * Forge's [[net.minecraftforge.fml.common.asm.transformers.SideTransformer]] and can cause classloading errors when using reflection.
-  * @author delvr
-  */
-class FarseekClassVisitor(bytecode: Array[Byte], className: String, replacements: Seq[MethodReplacement]) extends ClassPatcher(bytecode) {
-
-    import farseek.core.FarseekClassVisitor._
-
-    override def visitMethod(accessFlags: Int, name: String, descriptor: String, signature: String, exceptions: Array[String]) = {
-        if(side == SERVER && descriptor.contains(MinecraftClientPackage) && !UnannotatedClientClasses.exists(descriptor.contains)) {
-            trace(s"Removing method with client-only net.minecraft.client parameters or return value: $className.$name")
-            null
-        } else {
-            val visitor = super.visitMethod(accessFlags, name, descriptor, signature, exceptions)
-            new SuperCallFixingMethodVisitor(className, visitor, replacements)
-        }
-    }
+abstract class ClassPatcher(reader: ClassReader) extends ClassVisitor(ASM5, new ClassWriter(reader, COMPUTE_MAXS)) {
+  def patch: Array[Byte] = {
+    reader.accept(this, 0)
+    cv.asInstanceOf[ClassWriter].toByteArray
+  }
 }
 
-/** Companion object for [[FarseekClassVisitor]]s.
-  * @author delvr
-  */
-object FarseekClassVisitor {
+class FarseekClassVisitor(bytecode: Array[Byte], className: String, replacements: Map[ReplacedMethod, MethodReplacement])
+  extends ClassPatcher(new ClassReader(bytecode)) with Logging {
 
-    private val MinecraftClientPackage = "net/minecraft/client/"
+  override def visitMethod(accessFlags: Int, methodName: String, descriptor: String, signature: String, exceptions: Array[String]) =
+    new MethodCallRedirector(super.visitMethod(accessFlags, methodName, descriptor, signature, exceptions), methodName)
 
-    /** Set of classes in [[MinecraftClientPackage]] that lack a [[net.minecraftforge.fml.relauncher.SideOnly]] annotation. */
-    private val UnannotatedClientClasses = Set("model/ModelBase", "model/ModelBox", "model/ModelRenderer",
-        "model/PositionTextureVertex", "model/TexturedQuad").map(MinecraftClientPackage + _)
-}
-
-/** A [[MethodVisitor]] that replaces super() calls to methods in `replacements` with calls to aliased methods created by [[MethodReplacer]]s
-  * that contain the original implementations. This avoids duplicating functionality from executing replacements several times.
-  * @author delvr
-  */
-class SuperCallFixingMethodVisitor(className: String, visitor: MethodVisitor, replacements: Seq[MethodReplacement])
-        extends MethodVisitor(AsmVersion, visitor) with Logging {
-
-    import farseek.core.MethodReplacement._
-
-    // super.method() calls to replaced methods must target the original to avoid recursion
-    override def visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
-        val callTarget = {
-            if(opcode == INVOKESPECIAL && owner != className) { // Same owner would mean a call to a private method
-                replacements.find(_.matches(name, descriptor)) match {
-                    case Some(replacement) =>
-                        val newTarget = ReplacementPrefix + replacement.devName
-                        trace(s"Redirecting a super() call in $className from patched $name to original $newTarget")
-                        newTarget
-                    case None => name
-                }
-            } else name
-        }
-        super.visitMethodInsn(opcode, owner, callTarget, descriptor, isInterface)
+  class MethodCallRedirector(visitor: MethodVisitor, methodName: String) extends MethodVisitor(api, visitor) {
+    //trace(s"Visiting method $className/$methodName")
+    override def visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) = {
+      //trace(s"  Visiting method call to $owner/$name$descriptor")
+      if(opcode == INVOKESPECIAL && owner != className) // super() call
+        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
+      else replacements.get(ReplacedMethod(owner, name, descriptor)) match {
+        case Some(MethodReplacement(replacementClassName, replacementMethodName)) if !(methodName == replacementMethodName &&
+          (className == replacementClassName || className == replacementClassName+'$')) => // prevent recursion
+          //trace(s"Redirecting method call in $className/$methodName from ${r.className}/${r.methodName}" +
+          //      s" to ${r.replacementClassName}/${r.replacementMethodName}")
+          val newDescriptor = if(opcode == INVOKESTATIC) descriptor
+                              else descriptor.head + getObjectType(owner).getDescriptor + descriptor.tail
+          super.visitMethodInsn(INVOKESTATIC, replacementClassName, replacementMethodName, newDescriptor, false)
+        case _ => super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
+      }
     }
+  }
 }

@@ -17,7 +17,7 @@ import scala.collection.mutable
 
 /** Farseek implementation of world generation [[Structure]] generators, as an alternative to vanilla [[net.minecraft.world.gen.structure.MapGenStructure]]s.
   *
-  * @migration(message = "Structure API is not fully stable and will change for Streams version 0.2", version = "1.1.0")
+  * @migration(message = "Structure API is not fully stable and will change for Streams version 1.0", version = "1.1.0")
   * @author delvr
   */
 abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimensionId: Int = SurfaceDimensionId) extends Logging {
@@ -37,7 +37,7 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     def onChunkGeneration(world: WorldServer, generator: IChunkGenerator, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
       if(world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
           generator == world.getChunkProvider.chunkGenerator) // Don't recurse events when generating for structures
-              generate(xChunk, zChunk, primer)(StructureGenerationChunkProvider(world.provider))
+              generate(xChunk, zChunk, primer)(StructureGenerationChunkProvider(world))
     }
 
     protected def generate(xChunk: Int, zChunk: Int, primer: ChunkPrimer)(implicit worldAccess: IBlockAccess) {

@@ -8,6 +8,7 @@ import java.lang.reflect.Field
 import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
+import net.minecraft.world.gen.ChunkProviderServer
 import net.minecraft.world.gen.structure.StructureBoundingBox
 import scala.collection.mutable
 

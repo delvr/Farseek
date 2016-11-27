@@ -4,7 +4,6 @@ import farseek.block._
 import farseek.util.ImplicitConversions._
 import farseek.util.{XYZ, _}
 import farseek.world.biome._
-import farseek.world.gen.ChunkGeneratorExtensions._
 import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
 import net.minecraft.block.state._
 import net.minecraft.block.{BlockFalling, _}
@@ -32,8 +31,8 @@ package object world {
     val NetherDimensionId = -1
     val EndDimensionId = 1
 
-    /** Returns true if world generation is curently in the "populating" step (chunk decoration). */
-    def populating = BlockFalling.fallInstantly || populatingExtras
+    /**True while the game is generating or decorating chunks. */
+    var populating = false
 
     // ----------------------------------------------------------------------------------------------------------------
     // Y-ranges

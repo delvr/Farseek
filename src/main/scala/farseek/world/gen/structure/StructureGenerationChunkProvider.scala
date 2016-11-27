@@ -1,5 +1,7 @@
 package farseek.world.gen.structure
 
+import farseek.core._
+import farseek.util.ImplicitConversions._
 import farseek.util.Reflection._
 import farseek.util._
 import farseek.world._
@@ -7,7 +9,6 @@ import net.minecraft.world._
 import net.minecraft.world.chunk._
 import net.minecraft.world.gen.structure.MapGenStructure
 import net.minecraftforge.common.MinecraftForge._
-import net.minecraftforge.event.terraingen.PopulateChunkEvent
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import scala.collection.mutable
@@ -16,16 +17,27 @@ import scala.collection.mutable
   *
   * These chunks are used for structures being generated to query the terrain in their range without triggering recursion by generating more of themselves.
   * This enables Farseek structures to be terrain-aware in a way that vanilla structures cannot be, but also means that structures cannot
-  * know of others that can appear in their range. The implementor is responsible for either preventing these situations (ex.: by partitionning
+  * know of others that can appear in their range. The implementor is responsible for either preventing these situations (ex.: by partitioning
   * the world into distinct areas for generation, as is done for Streams) or handling collisions gracefully.
   *
   * @author delvr
   */
-class StructureGenerationChunkProvider(val worldProvider: WorldProvider) extends ServerBlockAccess with ChunkAccess with Logging {
+class StructureGenerationChunkProvider(world: WorldServer) extends ServerBlockAccess with ChunkAccess with Logging {
+
+    val worldProvider = world.provider
 
     debug(s"Creating structure generation chunk provider for world $worldProvider")
 
-    val generator = worldProvider.createChunkGenerator
+    lazy val spongeGeneratorMixin = classOf[WorldServer].getMethod("updateWorldGenerator")
+
+    val generator = if(!spongeLoaded) worldProvider.createChunkGenerator else {
+        val mainGenerator = world.getChunkProvider.chunkGenerator
+        spongeGeneratorMixin.invoke(world)
+        val copyGenerator = world.getChunkProvider.chunkGenerator
+        world.getChunkProvider.chunkGenerator = mainGenerator
+        copyGenerator
+    }
+
     private val loadedChunks = mutable.Map[XZ, Chunk]()
 
     classFieldValues[MapGenStructure](generator).foreach(_.range = -1) // Disable structure generators
@@ -44,10 +56,8 @@ class StructureGenerationChunkProvider(val worldProvider: WorldProvider) extends
     }
 
     // "real" chunk is ready with all structures in range, so we don't go there again
-    // Note that since we don't recreate structures on world load, reloaded chunks can be "generated through" and won't be unloaded, but this should remain a small number
-    @SubscribeEvent def onPrePopulateChunk(event: PopulateChunkEvent.Pre) {
-        if(event.getWorld.provider == this.worldProvider)
-            loadedChunks.remove(event.getChunkX, event.getChunkZ)
+    def onChunkProvided(chunk: Chunk) {
+        loadedChunks.remove(chunk.xPosition, chunk.zPosition)
     }
 
     @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
@@ -66,7 +76,9 @@ object StructureGenerationChunkProvider extends Logging {
 
     private val providers = mutable.Map[WorldProvider, StructureGenerationChunkProvider]()
 
-    def apply(worldProvider: WorldProvider) = providers.getOrElseUpdate(worldProvider, new StructureGenerationChunkProvider(worldProvider))
+    def apply(world: WorldServer) = providers.getOrElseUpdate(world, new StructureGenerationChunkProvider(world))
 
     def remove(worldProvider: WorldProvider) = providers.remove(worldProvider)
+
+    def onChunkProvided(chunk: Chunk) = providers.get(chunk.getWorld.provider).foreach(_.onChunkProvided(chunk))
 }

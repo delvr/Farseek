@@ -1,16 +1,29 @@
+import groovy.json.JsonBuilder
+import groovy.json.JsonOutput
+
 def modName = project.name
-def modPackage = modName.toLowerCase()
-def coreModClass = "${modPackage}.core.${modName}CoreMod"
+def modId = modName.toLowerCase()
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Decompile
+// Update
 // ---------------------------------------------------------------------------------------------------------------------
 apply plugin: "scala"
+ScalaCompileOptions.metaClass {
+    fork = true
+    useAnt = false
+    daemonServer = true
+    useCompileDaemon = false
+}
 
+ext.coreModClass = "farseek.core.FarseekCoreMod"
+def jvmArgs = "-Dfml.coreMods.load=$coreModClass"
 apply plugin: "net.minecraftforge.gradle.forge"
 minecraft {
     version = forgeRevision
     mappings = mcpMappings
+    runDir = "run"
+    clientJvmArgs += jvmArgs
+    serverJvmArgs += jvmArgs
 }
 
 task addLibraryTransformers {
@@ -23,71 +36,77 @@ task addLibraryTransformers {
         }
     }
 }
-tasks.setupDecompWorkspace.dependsOn(addLibraryTransformers)
+
+def modAuthorList = [githubUser]
+def modDependencyList = modDependencies.split(";")
+ext.writeJsonFile = { File dir, String name, Object contents ->
+    dir.mkdirs()
+    new File(dir, name).text = JsonOutput.prettyPrint(new JsonBuilder(contents).toString())
+}
+task modInfo { writeJsonFile(sourceSets.main.resources.srcDirs[0], "mcmod.info", [{
+   modid        modId
+   version      modVersion
+   name         modName
+   description  modDescription
+   url          modUrl
+   authorList   modAuthorList
+   requiredMods modDependencyList
+   dependencies modDependencyList
+}])}
+
+tasks.setupDecompWorkspace.dependsOn(addLibraryTransformers, modInfo)
 
 apply plugin: "idea"
 idea.module.excludeDirs += files(".idea", "gradle", "libs", "run")
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Run
-// ---------------------------------------------------------------------------------------------------------------------
-def jvmArgs = "-Dfml.coreMods.load=farseek.core.FarseekCoreMod,$coreModClass"
-minecraft {
-    runDir = "run"
-    clientJvmArgs += jvmArgs
-    serverJvmArgs += jvmArgs
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
 // Build
 // ---------------------------------------------------------------------------------------------------------------------
-version = "${minecraft.version}-$modVersion"
+String mcVersion = minecraft.version
+version = "$mcVersion-$modVersion"
 
-minecraft {
-    replaceIn "$modPackage/${modName}Mod.scala"
-    replace "@Mod(", "@Mod(version=\"$version\", dependencies=\"required-after:$modDependencies\", "
-}
-
-jar.manifest {
-    attributes "FMLAT": "${modName}_at.cfg"
-    attributes "FMLCorePlugin": coreModClass
-    attributes "FMLCorePluginContainsFMLMod": "affirmative"
-}
+jar.manifest.attributes "FMLAT": "${modId}_at.cfg"
 
 task deobfJar(type: Jar) {
     classifier = "deobf"
     from sourceSets.main.output
     from "common.gradle"
 }
-tasks.jar.dependsOn("deobfJar")
+
+tasks.jar.dependsOn(deobfJar)
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Release
 // ---------------------------------------------------------------------------------------------------------------------
-def changeLog = file("changelog.md").text + """
+def changeLog = file("changelog.md").text
+def releaseChangeLog = changeLog + """
 Built using [Forge](http://files.minecraftforge.net/maven/net/minecraftforge/forge/index_${minecraft.version}.html) ${minecraft.forgeVersion} and [MCP mappings](http://export.mcpbot.bspk.rs) ${minecraft.mappings}.
 """
-if(project.hasProperty("githubUser") && project.hasProperty("githubApiKey")) {
+
+if(project.hasProperty("githubApiKey")) {
     apply plugin: "co.riiid.gradle"
     github {
         owner = githubUser
         token = githubApiKey
         repo = modName
-        targetCommitish = minecraft.version
+        targetCommitish = mcVersion
         tagName = "v$version"
-        body = changeLog
+        body = releaseChangeLog
     }
 }
-if(project.hasProperty("curseForgeId") && project.hasProperty("curseForgeApiKey")) {
+
+if(project.hasProperty("curseForgeApiKey")) {
     apply plugin: "com.matthewprenger.cursegradle"
     curseforge {
-        apiKey = project.curseForgeApiKey
+        apiKey = curseForgeApiKey
         project {
             id = curseForgeId
             releaseType = curseForgeReleaseType
-            changelog = changeLog
+            changelog = releaseChangeLog
             changelogType = "markdown"
-            if(modName != "Farseek") relations { requiredLibrary "farseek" }
+            curseGradleOptions.javaVersionAutoDetect = false
+            addGameVersion "1.8"
+            if(modId != "farseek") relations { requiredLibrary "farseek" }
         }
     }
 }

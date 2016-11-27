@@ -1,4 +1,5 @@
-- Fixed [a server-side crash with Forestry and Fancy Fluid Storage](https://github.com/delvr/Farseek/issues/10).
-- Fixed [a crash with ImmersiveCraft when not including optional mods](https://github.com/delvr/Streams/issues/17).
-- Fixed [a crash with Repose from modded blocks with null items](https://github.com/delvr/Streams/issues/16).
-- Fixed server-side log messages appearing in shell console instead of game logs.
+- New simplified method patching system with better mod compatibility. Only Farseek needs a coremod now; dependent mods only need a config file.
+- Fixed [crashes with mods having @Optional dependencies](https://github.com/delvr/Farseek/issues/14) (such as WAILA or TheOneProbe) when these dependencies are missing.
+- Fixed a [server crash with Water Strainer](https://github.com/delvr/Farseek/issues/19).
+- Added `mcmod.info` metadata generation for this and dependent mods.
+- _Not_ backwards-compatible with Farseek 1.x.

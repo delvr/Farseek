@@ -9,7 +9,7 @@ import java.util.Random
 
 /** Farseek implementation of world generation [[Structure]] components, as an alternative to vanilla [[StructureComponent]]s.
   *
-  * @migration(message = "Structure API is not fully stable and will change for Streams version 0.2", version = "1.1.0")
+  * @migration(message = "Structure API is not fully stable and will change for Streams version 1.0", version = "1.1.0")
   * @author delvr
   */
 abstract class StructureComponent(structure: Structure[_]) extends Bounded with Logging {
