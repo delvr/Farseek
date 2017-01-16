@@ -1,5 +1,2 @@
-- New simplified method patching system with better mod compatibility. Only Farseek needs a coremod now; dependent mods only need a config file.
-- Fixed [crashes with mods having @Optional dependencies](https://github.com/delvr/Farseek/issues/14) (such as WAILA or TheOneProbe) when these dependencies are missing.
-- Fixed a [server crash with Water Strainer](https://github.com/delvr/Farseek/issues/19).
-- Added `mcmod.info` metadata generation for this and dependent mods.
-- _Not_ backwards-compatible with Farseek 1.x.
+- Fixe [crash before Forge loading error screen](https://github.com/delvr/Streams/issues/27) with Streams mod when invalid or conflicting mods are present.
+- Fixed [invalid characters in existing-world warnings](https://github.com/delvr/Streams/issues/30) for mods requiring new worlds.

@@ -19,14 +19,11 @@ package object storage {
       }
       val missingModWarnings = missingFarseekMods.flatMap(mod =>
         mod.existingWorldWarning.map(warning => s"${mod.name}: $warning"))
-      missingModWarnings.nonEmpty && !StartupQuery.confirm(
-        s"""The following Farseek mod(s) can cause issues with existing worlds:
-           |
-           |${missingModWarnings.mkString("\n")}
-           |
-           |It is recommended to make backups of your world before proceeding.
-           |
-           |Continue?"""".stripMargin)
+      missingModWarnings.nonEmpty && !StartupQuery.confirm(Seq(
+        "The following Farseek mod(s) can cause issues with existing worlds:",
+         missingModWarnings.mkString("\n"),
+        "It is recommended to make backups of your world before proceeding.",
+        "Continue?").mkString("\n\n"))
     }
     if(abort) StartupQuery.abort() else container.readData(handler, worldInfo, properties, tags)
   }
