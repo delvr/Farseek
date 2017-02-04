@@ -1,22 +1,24 @@
 package farseek.world.gen
 
-import cpw.mods.fml.common.registry.GameRegistry
 import farseek.core.ReplacedMethod
-import net.minecraft.world._
-import net.minecraft.world.chunk.IChunkProvider
+import farseek.world.gen.structure.StructureGenerationChunkProvider
+import farseek.world.populating
+import net.minecraft.world.WorldServer
+import net.minecraft.world.chunk.{Chunk, IChunkProvider}
 
 /** Method extensions related to chunk generation.
   * @author delvr
   */
 object ChunkGeneratorExtensions {
 
-    var populatingExtras = false
-
-    /** Replacement method for [[GameRegistry.generateWorld()]] that sets [[populatingExtras]] to `true` during mod-provided chunk population. */
-    def generateWorld(xChunk: Int, zChunk: Int, world: World, chunkGenerator: ChunkGenerator, chunkProvider: IChunkProvider,
-                             super_generateWorld: ReplacedMethod[GameRegistry]) {
-        populatingExtras = true
-        super_generateWorld(xChunk, zChunk, world, chunkGenerator, chunkProvider)
-        populatingExtras = false
+  def provideChunk(xChunk: Int, zChunk: Int, super_provideChunk: ReplacedMethod[IChunkProvider])(implicit provider: IChunkProvider): Chunk = {
+    populating = true
+    val chunk: Chunk = super_provideChunk(xChunk, zChunk)
+    chunk.worldObj match {
+      case w: WorldServer if provider eq w.theChunkProviderServer.currentChunkProvider => StructureGenerationChunkProvider.onChunkProvided(chunk)
+      case _ =>
     }
+    populating = false
+    chunk
+  }
 }

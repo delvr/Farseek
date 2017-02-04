@@ -8,15 +8,15 @@ import net.minecraft.world._
 import net.minecraft.world.chunk._
 import net.minecraft.world.gen.structure.MapGenStructure
 import net.minecraftforge.common.MinecraftForge._
-import net.minecraftforge.event.terraingen.PopulateChunkEvent
 import net.minecraftforge.event.world.WorldEvent
+
 import scala.collection.mutable
 
 /** A chunk provider for [[Structure]]s that contains a copy of a world's chunk generator and creates chunks _without_ structures.
   *
   * These chunks are used for structures being generated to query the terrain in their range without triggering recursion by generating more of themselves.
   * This enables Farseek structures to be terrain-aware in a way that vanilla structures cannot be, but also means that structures cannot
-  * know of others that can appear in their range. The implementor is responsible for either preventing these situations (ex.: by partitionning
+  * know of others that can appear in their range. The implementor is responsible for either preventing these situations (ex.: by partitioning
   * the world into distinct areas for generation, as is done for Streams) or handling collisions gracefully.
   *
   * @author delvr
@@ -44,10 +44,8 @@ class StructureGenerationChunkProvider(val worldProvider: WorldProvider) extends
     }
 
     // "real" chunk is ready with all structures in range, so we don't go there again
-    // Note that since we don't recreate structures on world load, reloaded chunks can be "generated through" and won't be unloaded, but this should remain a small number
-    @SubscribeEvent def onPrePopulateChunk(event: PopulateChunkEvent.Pre) {
-        if(event.world.provider == this.worldProvider)
-            loadedChunks.remove(event.chunkX, event.chunkZ)
+    def onChunkProvided(chunk: Chunk) {
+        loadedChunks.remove(chunk.xPosition, chunk.zPosition)
     }
 
     @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
@@ -69,4 +67,6 @@ object StructureGenerationChunkProvider extends Logging {
     def apply(worldProvider: WorldProvider) = providers.getOrElseUpdate(worldProvider, new StructureGenerationChunkProvider(worldProvider))
 
     def remove(worldProvider: WorldProvider) = providers.remove(worldProvider)
+
+    def onChunkProvided(chunk: Chunk) = providers.get(chunk.worldObj.provider).foreach(_.onChunkProvided(chunk))
 }

@@ -5,9 +5,8 @@ import com.bioxx.tfc.Core.TFC_Climate._
 import farseek.block.{BlockAndData, _}
 import farseek.util.ImplicitConversions._
 import farseek.util.{XYZ, _}
-import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
 import farseek.world.biome._
-import farseek.world.gen.ChunkGeneratorExtensions._
+import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
 import net.minecraft.block.{BlockFalling, _}
 import net.minecraft.entity.Entity
 import net.minecraft.init.Blocks._
@@ -34,8 +33,8 @@ package object world {
     val NetherDimensionId = -1
     val EndDimensionId = 1
 
-    /** Returns true if world generation is curently in the "populating" step (chunk decoration). */
-    def populating = BlockFalling.fallInstantly || (tfcLoaded && BlockCollapsible.fallInstantly) || populatingExtras
+    /** True while the game is generating or decorating chunks. */
+    var populating = false
 
     // ----------------------------------------------------------------------------------------------------------------
     // Y-ranges
