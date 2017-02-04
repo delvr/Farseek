@@ -36,11 +36,11 @@ package object util {
 
     def randomElementOption[T](seq: Array[T])(implicit random: Random): Option[T] = if(seq.nonEmpty) Some(randomElement(seq)) else None
 
-    def clampedIndex(seq: Array[_], i: Int): Int = clamp_int(i, 0, seq.length - 1)
+    def clampedIndex(seq: Array[_], i: Int): Int = clamp(i, 0, seq.length - 1)
 
     def clamped[T](seq: Array[T], i: Int): T = seq(clampedIndex(seq, i))
 
-    def clamped(min: Int, n: Int, max: Int): Int = clamp_int(n, min, max)
+    def clamped(min: Int, n: Int, max: Int): Int = clamp(n, min, max)
 
     def isValidIndex(seq: Array[_], i: Int): Boolean = i >= 0 && i < seq.length
 
@@ -53,9 +53,9 @@ package object util {
 
     def between(start: Int, end: Int): Range = if(start <= end) start to end else start to end by -1
 
-    def hypotenuse(a: Double, b: Double): Double = sqrt(a*a + b*b)
+    def hypotenuse(a: Double, b: Double): Double = math.sqrt(a*a + b*b)
 
-    def hypotenuse(a: Double, b: Double, c: Double): Double = sqrt(a*a + b*b + c*c)
+    def hypotenuse(a: Double, b: Double, c: Double): Double = math.sqrt(a*a + b*b + c*c)
 
     def distance(x1: Int, z1: Int, x2: Int, z2: Int): Double = hypotenuse(x2 - x1, z2 - z1)
 

@@ -1,2 +1,1 @@
-- Fixe [crash before Forge loading error screen](https://github.com/delvr/Streams/issues/27) with Streams mod when invalid or conflicting mods are present.
-- Fixed [invalid characters in existing-world warnings](https://github.com/delvr/Streams/issues/30) for mods requiring new worlds.
+- Updated to Minecraft 1.11.

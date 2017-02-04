@@ -10,9 +10,9 @@ package object entity {
 
     /** Value class for [[Entity]] objects with utility methods. */
     implicit class EntityValue(val e: Entity) extends AnyVal {
-        def x = floor_double(e.posX)
-        def y = floor_double(e.posY)
-        def z = floor_double(e.posZ)
+        def x = floor(e.posX)
+        def y = floor(e.posY)
+        def z = floor(e.posZ)
         def xyz = (x, y, z)
     }
 }

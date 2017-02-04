@@ -155,7 +155,7 @@ package object world {
 
         def worldProvider: WorldProvider = bac match {
             case w: World => w.provider
-            case c: ChunkCache => c.worldObj.provider
+            case c: ChunkCache => c.world.provider
             case b: BlockAccess => b.worldProvider
         }
 

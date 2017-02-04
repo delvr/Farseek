@@ -49,7 +49,7 @@ abstract class ConfigScreen(parent: GuiScreen) extends GuiScreen {
     /** Draws the screen's buttons and sets up their tooltips. */
     override def drawScreen(x: Int, y: Int, renderPartialTicks: Float) {
         drawDefaultBackground()
-        drawCenteredString(fontRendererObj, category.caption, width/2, 10, 0xFFFFFF)
+        drawCenteredString(fontRenderer, category.caption, width/2, 10, 0xFFFFFF)
         super.drawScreen(x, y, renderPartialTicks)
         if(abs(x - lastMouseX) <= 5 && abs(y - lastMouseY) <= 5) {
             if(currentTimeMillis >= mouseStillTime + 700) {
@@ -60,7 +60,7 @@ abstract class ConfigScreen(parent: GuiScreen) extends GuiScreen {
                         val y1 = if(y <= tmp + 98) tmp + 105 else tmp
                         drawGradientRect(x1, y1, width - x1, y1 + 94, -536870912, -536870912)
                         wordWrap(control.tooltip, (width/5.5).toInt - 2).zipWithIndex.foreach { case (line, index) =>
-                            fontRendererObj.drawStringWithShadow(line, x1 + 5, y1 + 5 + index*11, 14540253)
+                            fontRenderer.drawStringWithShadow(line, x1 + 5, y1 + 5 + index*11, 14540253)
                         }
                     case _ =>
                 }

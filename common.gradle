@@ -101,7 +101,7 @@ if(project.hasProperty("curseForgeId")) {
             changelogType = "markdown"
             curseGradleOptions.javaVersionAutoDetect = false
             addGameVersion "Java 8"
-            addGameVersion "1.10.2"
+            addGameVersion "1.11.2"
             if(modId != "farseek") relations { requiredLibrary "farseek" }
         }
     }

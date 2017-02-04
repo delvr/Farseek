@@ -8,7 +8,6 @@ import java.lang.reflect.Field
 import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
-import net.minecraft.world.gen.ChunkProviderServer
 import net.minecraft.world.gen.structure.StructureBoundingBox
 import scala.collection.mutable
 
@@ -55,6 +54,10 @@ package object gen {
         def yMax = box.maxY
         def zMax = box.maxZ
 
+        def xCenter = xMin + (xMax - xMin + 1) / 2
+        def yCenter = yMin + (yMax - yMin + 1) / 2
+        def zCenter = zMin + (zMax - zMin + 1) / 2
+
         def xs = xMin to xMax
         def ys = yMin to yMax
         def zs = zMin to zMax
@@ -97,6 +100,6 @@ package object gen {
             newBox
         }
 
-        def debug = s"tp ${box.getCenter.getX} ${box.getCenter.getY} ${box.getCenter.getZ}"
+        def debug = s"tp $xCenter $yCenter $zCenter"
     }
 }

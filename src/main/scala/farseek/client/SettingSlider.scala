@@ -14,7 +14,7 @@ class SettingSlider(setting: NumericSetting, index: Int, _xPosition: Int, _yPosi
     private var mouseIsPressed = false
 
     private def setValueFromPosition(x: Int) {
-        setValue(setting.snapToStep(setting.denormalized(clamp_double((x - (xPosition + 4)).toDouble / (width - 8).toDouble, 0F, 1F))))
+        setValue(setting.snapToStep(setting.denormalized(clamp((x - (xPosition + 4)).toDouble / (width - 8).toDouble, 0F, 1F))))
     }
 
     override protected def getHoverState(unused: Boolean) = 0

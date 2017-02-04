@@ -2,7 +2,6 @@ package farseek.world.gen
 
 import farseek.util._
 import farseek.world.BlockAccess
-import net.minecraft.world.gen.structure._
 
 /** Convenience base trait for objects that have a [[BoundingBox]].
   * @author delvr
@@ -18,9 +17,9 @@ trait Bounded {
     def yMax = boundingBox.maxY
     def zMax = boundingBox.maxZ
 
-    def xCenter = boundingBox.getCenter.getX
-    def yCenter = boundingBox.getCenter.getY
-    def zCenter = boundingBox.getCenter.getZ
+    def xCenter = xMin + (xMax - xMin + 1) / 2
+    def yCenter = yMin + (yMax - yMin + 1) / 2
+    def zCenter = zMin + (zMax - zMin + 1) / 2
 
     override def toString = s"${getClass.getSimpleName} $boundingBox"
 
