@@ -81,9 +81,15 @@ package object biome {
         getRockLayer(w, wx, wy, wz, getRockLayerFromHeight(w, wx, wy, wz))
     }
 
-    private def tfcRainfall(x: Int, y: Int, z: Int)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = {
+    def tfcRainfall(x: Int, y: Int, z: Int)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = {
         val w = bac.worldProvider.worldObj
         val (wx, wy, wz) = cs.xyzWorld(x, y, z)
         getRainfall(w, wx, wy, wz)
+    }
+
+    def tfcTemperature(x: Int, z: Int)(implicit bac: IBlockAccess, cs: CoordinateSystem = AbsoluteCoordinates) = {
+        val w = bac.worldProvider.worldObj
+        val (wx, wz) = cs.xzWorld(x, z)
+        getBioTemperature(w, wx, wz)
     }
 }

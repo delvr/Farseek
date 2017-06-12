@@ -10,15 +10,15 @@ import scala.collection.mutable
 
 /** Farseek implementation of world generation structures, as an alternative to vanilla [[StructureStart]]s.
   *
-  * @migration(message = "Structure API is not fully stable and will change for Streams version 0.2", version = "1.1.0")
+  * @migration(message = "Structure API is not fully stable and will change for Streams version 1.0", version = "1.1.0")
   * @author delvr
   */
 abstract class Structure[T <: StructureComponent](generator: StructureGenerator[_], val boundingBox: BoundingBox,
                                                   protected val worldProvider: WorldProvider) extends Bounded with Logging {
-    
+
     protected val components = mutable.Buffer[T]()
 
-    def generate(implicit worldAccess: IBlockAccess, random: Random)
+    def generate()(implicit worldAccess: IBlockAccess, random: Random)
 
     def +=(component: T) {
         components += component

@@ -1,15 +1,12 @@
 package farseek.world.gen.structure
 
-import cpw.mods.fml.common.eventhandler._
+import cpw.mods.fml.common.eventhandler.SubscribeEvent
 import farseek.util.Reflection._
 import farseek.util._
-import farseek.world._
 import net.minecraft.world._
-import net.minecraft.world.chunk._
 import net.minecraft.world.gen.structure.MapGenStructure
 import net.minecraftforge.common.MinecraftForge._
 import net.minecraftforge.event.world.WorldEvent
-
 import scala.collection.mutable
 
 /** A chunk provider for [[Structure]]s that contains a copy of a world's chunk generator and creates chunks _without_ structures.
@@ -21,31 +18,19 @@ import scala.collection.mutable
   *
   * @author delvr
   */
-class StructureGenerationChunkProvider(val worldProvider: WorldProvider) extends ServerBlockAccess with ChunkAccess with Logging {
+class StructureGenerationChunkProvider(val worldProvider: WorldProvider) extends Logging {
 
     debug(s"Creating structure generation chunk provider for world $worldProvider")
 
     val generator = worldProvider.createChunkGenerator
-    private val loadedChunks = mutable.Map[XZ, Chunk]()
 
     classFieldValues[MapGenStructure](generator).foreach(_.range = -1) // Disable structure generators
     EVENT_BUS.register(this)
 
-    def chunkAt(x: Int, z: Int) = {
-        val xChunk = x >> 4
-        val zChunk = z >> 4
-        loadedChunks.getOrElseUpdate((xChunk, zChunk), generateChunk(xChunk, zChunk))
-    }
-
-    private def generateChunk(xChunk: Int, zChunk: Int) = {
+    def generateChunk(xChunk: Int, zChunk: Int) = {
         val chunk = generator.provideChunk(xChunk, zChunk)
         chunk.isTerrainPopulated = true
         chunk
-    }
-
-    // "real" chunk is ready with all structures in range, so we don't go there again
-    def onChunkProvided(chunk: Chunk) {
-        loadedChunks.remove(chunk.xPosition, chunk.zPosition)
     }
 
     @SubscribeEvent def onWorldUnload(event: WorldEvent.Unload) {
@@ -67,6 +52,4 @@ object StructureGenerationChunkProvider extends Logging {
     def apply(worldProvider: WorldProvider) = providers.getOrElseUpdate(worldProvider, new StructureGenerationChunkProvider(worldProvider))
 
     def remove(worldProvider: WorldProvider) = providers.remove(worldProvider)
-
-    def onChunkProvided(chunk: Chunk) = providers.get(chunk.worldObj.provider).foreach(_.onChunkProvided(chunk))
 }

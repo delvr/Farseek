@@ -19,11 +19,11 @@ class ConfigCategory(category: Option[ConfigCategory], name: String) extends Con
         if(file.exists) {
             val props = new Properties
             props.load(new FileReader(file))
-            load(props)
-        }
+            load(Some(props))
+        } else load(None)
     }
 
-    def load(props: Properties) {
+    def load(props: Option[Properties]) {
         elements.foreach(_.load(props))
     }
 

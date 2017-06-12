@@ -35,12 +35,13 @@ abstract class ConfigScreen(parent: GuiScreen) extends GuiScreen {
             val y = 30 + i/2*30
             val w = width/2 - 30
             val control = element match {
-                case category: ConfigCategory     => new           CategoryButton(category, i, x, y, w, h, s"${category.caption}...")
-                case  setting: BooleanSetting     => new       OnOffSettingButton( setting, i, x, y, w, h)
-                case  setting: MultiChoiceSetting => new MultiChoiceSettingButton( setting, i, x, y, w, h)
-                case  setting: NumericSetting     => new            SettingSlider( setting, i, x, y, w, h)
+                case category: ConfigCategory     => Some(new           CategoryButton(category, i, x, y, w, h, s"${category.caption}..."))
+                case  setting: BooleanSetting     => Some(new       OnOffSettingButton( setting, i, x, y, w, h))
+                case  setting: MultiChoiceSetting => Some(new MultiChoiceSettingButton( setting, i, x, y, w, h))
+                case  setting: NumericSetting     => Some(new            SettingSlider( setting, i, x, y, w, h))
+                case _ => None
             }
-            buttons += control
+            control.foreach(buttons += _)
         }
         buttons += new GuiButton(Done, width/4, height - 38, width/2, h, I18n.format("gui.done"))
     }

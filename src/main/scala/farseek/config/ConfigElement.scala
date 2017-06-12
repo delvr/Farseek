@@ -16,7 +16,7 @@ abstract class ConfigElement(category: Option[ConfigCategory], val name: String)
 
     protected val fileColumns = 120
 
-    def load(props: Properties)
+    def load(props: Option[Properties])
 
     def save(writer: PrintWriter, columns: Int)
 

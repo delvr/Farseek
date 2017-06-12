@@ -1,5 +1,8 @@
 package farseek.world
 
+import cpw.mods.fml.common.IWorldGenerator
+import cpw.mods.fml.common.registry.GameRegistry
+import farseek.tfc
 import farseek.util.Reflection._
 import farseek.util.{XYZ, _}
 import farseek.world.Direction._
@@ -24,6 +27,20 @@ package object gen {
 
     /** Maps [[ChunkGenerator]]s with the first field of [[World]] type or subtype declared in their class. */
     val chunkGeneratorWorldClassFields = mutable.Map[Class[_ <: ChunkGenerator], Field]().withDefault(classFields[World](_).head)
+
+    var populatingExtras = false
+
+    def registerWorldGenerator(generator: IWorldGenerator, modGenerationWeight: Int) {
+        val newGenerator = if(tfcLoaded && generator.isInstanceOf[com.bioxx.tfc.WorldGen.Generators.WorldGenForests]) new tfc.WorldGenForests else generator
+        GameRegistry.registerWorldGenerator(newGenerator, modGenerationWeight)
+    }
+
+    /** Replacement method for GameRegistry.generateWorld() that sets [[populatingExtras]] to `true` during mod-provided chunk population. */
+    def generateWorld(xChunk: Int, zChunk: Int, world: World, chunkGenerator: ChunkGenerator, chunkProvider: IChunkProvider) {
+        populatingExtras = true
+        GameRegistry.generateWorld(xChunk, zChunk, world, chunkGenerator, chunkProvider)
+        populatingExtras = false
+    }
 
     def chunkRandom(xChunk: Int, zChunk: Int)(implicit w: WorldProvider): Random = {
         val worldSeed = w.getSeed

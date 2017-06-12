@@ -6,6 +6,7 @@ import farseek.block.{BlockAndData, _}
 import farseek.util.ImplicitConversions._
 import farseek.util.{XYZ, _}
 import farseek.world.biome._
+import farseek.world.gen._
 import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
 import net.minecraft.block.{BlockFalling, _}
 import net.minecraft.entity.Entity
@@ -34,7 +35,7 @@ package object world {
     val EndDimensionId = 1
 
     /** True while the game is generating or decorating chunks. */
-    var populating = false
+    def populating = BlockFalling.fallInstantly || populatingExtras
 
     // ----------------------------------------------------------------------------------------------------------------
     // Y-ranges

@@ -10,14 +10,14 @@ import net.minecraft.world.WorldProvider
   * It is meant for use during chunk generation by a [[net.minecraft.world.gen.ChunkProviderGenerate]] or other generator implementation.
   * @author delvr
   */
-class ChunkBlockArrayAccess(val worldProvider: WorldProvider, xChunk: Int, zChunk: Int, blocks: Array[Block], datas: Option[Array[Byte]] = None, val yBottom: Int = 0)
+class ChunkBlockArrayAccess(val worldProvider: WorldProvider, xChunk: Int, zChunk: Int, blocks: Array[Block], datas: Option[Array[Byte]] = None)
         extends BlockSetter with BoundedBlockAccess {
 
     private val height = blocks.length / ChunkArea
 
-    val boundingBox = sizedBox(xChunk*ChunkSize, yBottom, zChunk*ChunkSize, ChunkSize, height, ChunkSize)
+    val boundingBox = sizedBox(xChunk*ChunkSize, 0, zChunk*ChunkSize, ChunkSize, height, ChunkSize)
 
-    private def index(x: Int, y: Int, z: Int) = ((x & 15)*16 + (z & 15))*height - yBottom + y
+    private def index(x: Int, y: Int, z: Int) = ((x & 15)*16 + (z & 15))*height + y
 
     def getBlock(x: Int, y: Int, z: Int) = blocks(index(x, y, z))
 

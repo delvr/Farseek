@@ -1,8 +1,18 @@
-apply plugin: "idea"
-apply plugin: "curseforge"
+import groovy.json.JsonBuilder
+import groovy.json.JsonOutput
 
-idea {
-    module { excludeDirs += files(".idea", "docs", "gradle", "libs", "run-client", "run-server") }
+def modName = project.name
+def modId = modName.toLowerCase()
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Update
+// ---------------------------------------------------------------------------------------------------------------------
+apply plugin: "scala"
+apply plugin: "forge"
+minecraft {
+    version = forgeRevision
+    runDir = "run"
+    // If testing standalone Farseek add JVM arg "-Dfml.coreMods.load=farseek.core.FarseekCoreMod" to Client/Server run configurations
 }
 
 task addLibraryTransformers {
@@ -17,31 +27,78 @@ task addLibraryTransformers {
     }
 }
 
-tasks.setupDecompWorkspace.dependsOn(addLibraryTransformers)
+def modAuthorList = [githubUser]
+def modDependencyList = modDependencies.equals("")? []: modDependencies.split(";")
+def modOptionalDependencyList = modOptionalDependencies.equals("")? []: modOptionalDependencies.split(";")
+ext.writeJsonFile = { File dir, String name, Object contents ->
+    dir.mkdirs()
+    new File(dir, name).text = JsonOutput.prettyPrint(new JsonBuilder(contents).toString())
+}
+task modInfo { writeJsonFile(sourceSets.main.resources.srcDirs[0], "mcmod.info", [{
+    modid        modId
+    version      modVersion
+    name         modName
+    description  modDescription
+    url          modUrl
+    authorList   modAuthorList
+    requiredMods modDependencyList
+    dependencies modOptionalDependencyList
+    useDependencyInformation true
+}])}
 
-ext.modSourceFile = "${modClass.replace('.', '/')}.scala"
+tasks.setupDecompWorkspace.dependsOn(addLibraryTransformers, modInfo)
 
-minecraft {
-    version = forgeVersion
-    replaceIn modSourceFile
-        replace "SNAPSHOT", modVersion
-        replace "required-after:farseek", "required-after:farseek@$farseekDependency"
+apply plugin: "idea"
+idea.module.excludeDirs += files(".idea", "gradle", "libs", "run")
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Build
+// ---------------------------------------------------------------------------------------------------------------------
+String mcVersion = minecraft.version
+version = "$mcVersion-$modVersion"
+
+jar.manifest.attributes "FMLAT": "${modId}_at.cfg"
+
+task srcJar(type: Jar) {
+    classifier = "src"
+    from sourceSets.main.allSource
+    from "common.gradle"
 }
 
-archivesBaseName = project.projectDir.name
-version = modVersion
+task deobfJar(type: Jar) {
+    classifier = "deobf"
+    from sourceSets.main.output
+    from "common.gradle"
+    manifest = jar.manifest
+}
 
-jar {
-    manifest {
-        attributes "FMLCorePlugin": coreModClass
-        attributes "FMLCorePluginContainsFMLMod": "yeah it does"
-        attributes "FMLAT": accessTransformer
+tasks.jar.dependsOn(srcJar, deobfJar)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Release
+// ---------------------------------------------------------------------------------------------------------------------
+def releaseChangeLog = file("changelog.md").text + """
+Built using [Forge](http://files.minecraftforge.net/maven/net/minecraftforge/forge/index_${minecraft.version}.html) revision $forgeRevision and [MCP mappings](http://export.mcpbot.bspk.rs) ${minecraft.mappings}.
+"""
+
+if(project.hasProperty("githubApiKey")) {
+    apply plugin: "co.riiid.gradle"
+    github {
+        owner = githubUser
+        token = githubApiKey
+        repo = modName
+        targetCommitish = mcVersion
+        tagName = "v$version"
+        body = releaseChangeLog
     }
 }
 
-curse {
-    projectId   = curseForgeId
-    releaseType = curseForgeReleaseType
-    changelog   = curseForgeChangelog
-    apiKey = project.hasProperty("curseForgeApiKey")? project.curseForgeApiKey: ""
+if(project.hasProperty("curseForgeId")) {
+    apply plugin: "curseforge"
+    curse {
+        apiKey      = curseForgeApiKey
+        projectId   = curseForgeId
+        releaseType = curseForgeReleaseType
+        changelog   = releaseChangeLog
+    }
 }
