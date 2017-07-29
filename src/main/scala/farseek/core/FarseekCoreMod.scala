@@ -45,7 +45,6 @@ class FarseekClassTransformer extends IClassTransformer with Logging {
   }
 
   private def methodReplacements(file: File): Seq[(ReplacedMethod, MethodReplacement)] = {
-    //trace(s"Checking $file for method replacements")
     if(!file.getName.endsWith(".jar")) Seq()
     else logged(file, using(new ZipFile(file))(zipFile =>
       Option(zipFile.getEntry(ReplacementsFilepath)).fold(Seq[(ReplacedMethod, MethodReplacement)]())(entry =>

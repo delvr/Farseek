@@ -77,9 +77,7 @@ tasks.jar.dependsOn(srcJar, deobfJar)
 // ---------------------------------------------------------------------------------------------------------------------
 // Release
 // ---------------------------------------------------------------------------------------------------------------------
-def releaseChangeLog = file("changelog.md").text + """
-Built using [Forge](http://files.minecraftforge.net/maven/net/minecraftforge/forge/index_${minecraft.version}.html) revision $forgeRevision and [MCP mappings](http://export.mcpbot.bspk.rs) ${minecraft.mappings}.
-"""
+def releaseChangeLog = file("changelog.md").text + "Built using Forge revision $forgeRevision."
 
 if(project.hasProperty("githubApiKey")) {
     apply plugin: "co.riiid.gradle"
