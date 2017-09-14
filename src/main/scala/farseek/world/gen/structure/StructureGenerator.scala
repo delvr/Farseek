@@ -8,6 +8,7 @@ import farseek.world.gen._
 import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
+import net.minecraft.world.gen.IChunkGenerator
 import net.minecraftforge.common.MinecraftForge._
 import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks
 import net.minecraftforge.event.terraingen._
@@ -37,18 +38,19 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     def onChunkGeneration(world: WorldServer, generator: IChunkGenerator, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
       if(world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
           generator == world.getChunkProvider.chunkGenerator) // Don't recurse events when generating for structures
-              generate(xChunk, zChunk, primer)(StructureGenerationChunkProvider(world))
+              generate(world, xChunk, zChunk, primer)
     }
 
-    protected def generate(xChunk: Int, zChunk: Int, primer: ChunkPrimer)(implicit worldAccess: IBlockAccess) {
+    protected def generate(world: WorldServer, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
         for(xStructureChunk <- xChunk - chunksRange to xChunk + chunksRange;
             zStructureChunk <- zChunk - chunksRange to zChunk + chunksRange) {
             if(!structures.contains(xStructureChunk, zStructureChunk)) {
-                implicit val random = chunkRandom(xStructureChunk, zStructureChunk)(worldAccess.worldProvider)
-                val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,             (zStructureChunk - chunksRange)*ChunkSize,
+              implicit val chunkProvider = new StructureGenerationBlockAccess(StructureGenerationChunkProvider(world))
+              implicit val random = chunkRandom(xStructureChunk, zStructureChunk)(world)
+              val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,             (zStructureChunk - chunksRange)*ChunkSize,
                                             (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
                 val structureOption = createStructure(bounds).flatMap { structure =>
-                    structure.generate(worldAccess, random)
+                    structure.generate()
                     if(structure.isValid) {
                         structure.commit()
                         debug(structure.debug)

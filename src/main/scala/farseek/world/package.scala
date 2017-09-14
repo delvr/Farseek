@@ -2,6 +2,7 @@ package farseek
 
 import farseek.block._
 import farseek.util.ImplicitConversions._
+import farseek.util.Reflection._
 import farseek.util.{XYZ, _}
 import farseek.world.biome._
 import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
@@ -31,8 +32,9 @@ package object world {
     val NetherDimensionId = -1
     val EndDimensionId = 1
 
+    private val populatingField = classOf[Chunk].getDeclaredField("populating")
     /**True while the game is generating or decorating chunks. */
-    var populating = false
+    def populating: Boolean = populatingField.value()
 
     // ----------------------------------------------------------------------------------------------------------------
     // Y-ranges

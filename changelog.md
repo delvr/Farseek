@@ -1,1 +1,5 @@
-- Updated to Minecraft 1.11.
+- Updated to Minecraft 1.12.
+- Possibly fixed [a performance issue with the structure chunk cache](https://github.com/delvr/Farseek/issues/22).
+- Fixed [a crash when using mods that have Mutated biomes with a null Base biome](https://github.com/delvr/Streams/issues/34).
+- Fixed erroneous confirmation requests for missing Streams mod on startup in SpongeForge.
+- Logging to logs/latest.log instead of fml-$SIDE-latest.log or fml-junk-earlystartup.log when using default Forge log4j2 config.

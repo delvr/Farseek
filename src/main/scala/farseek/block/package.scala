@@ -44,7 +44,7 @@ package object block {
     val Black = 15
 
     /** All blocks defined in the block registry. */
-    lazy val allBlocks: Set[Block] = Block.REGISTRY.registryObjects.values.toSet[Block]
+    lazy val allBlocks: Set[Block] = Block.REGISTRY.getKeys.map(Block.REGISTRY.getObject).toSet[Block]
 
     /** Blocks from [[allBlocks]] for which the best harvesting tool is the shovel. */
     lazy val granularBlocks: Set[Block] = {

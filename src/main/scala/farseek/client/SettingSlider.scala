@@ -14,7 +14,7 @@ class SettingSlider(setting: NumericSetting, index: Int, _xPosition: Int, _yPosi
     private var mouseIsPressed = false
 
     private def setValueFromPosition(x: Int) {
-        setValue(setting.snapToStep(setting.denormalized(clamp((x - (xPosition + 4)).toDouble / (width - 8).toDouble, 0F, 1F))))
+        setValue(setting.snapToStep(setting.denormalized(clamp((x - (this.x + 4)).toDouble / (width - 8).toDouble, 0F, 1F))))
     }
 
     override protected def getHoverState(unused: Boolean) = 0
@@ -25,8 +25,8 @@ class SettingSlider(setting: NumericSetting, index: Int, _xPosition: Int, _yPosi
             setValueFromPosition(x)
         val normalizedValue = setting.normalized(setting.value)
         glColor4f(1F, 1F, 1F, 1F)
-        drawTexturedModalRect(xPosition + (normalizedValue * (width - 8).toDouble).toInt    , yPosition,   0, 66, 4, 20)
-        drawTexturedModalRect(xPosition + (normalizedValue * (width - 8).toDouble).toInt + 4, yPosition, 196, 66, 4, 20)
+        drawTexturedModalRect(this.x + (normalizedValue * (width - 8).toDouble).toInt    , this.y,   0, 66, 4, 20)
+        drawTexturedModalRect(this.x + (normalizedValue * (width - 8).toDouble).toInt + 4, this.y, 196, 66, 4, 20)
     }
 
     // Misnomer: means that cursor is over this, checked when screen clicked

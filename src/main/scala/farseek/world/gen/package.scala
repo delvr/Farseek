@@ -8,6 +8,7 @@ import java.lang.reflect.Field
 import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
+import net.minecraft.world.gen.IChunkGenerator
 import net.minecraft.world.gen.structure.StructureBoundingBox
 import scala.collection.mutable
 
@@ -75,7 +76,7 @@ package object gen {
         def contains(xyz: XYZ): Boolean = box.isVecInside(xyz)
         def contains(otherBox: StructureBoundingBox) = otherBox.isWithin(box)
 
-        def intersects(chunk: Chunk) = intersectsChunkAt(chunk.xPosition, chunk.zPosition)
+        def intersects(chunk: Chunk) = intersectsChunkAt(chunk.x, chunk.z)
 
         def intersectsChunkAt(xChunk: Int, zChunk: Int) = box.intersectsWith(xChunk*ChunkSize, zChunk*ChunkSize, xChunk*ChunkSize + iChunkMax, zChunk*ChunkSize + iChunkMax)
 
