@@ -18,7 +18,7 @@ abstract class Structure[T <: StructureComponent](generator: StructureGenerator[
     
     protected val components = mutable.Buffer[T]()
 
-    def generate(implicit worldAccess: IBlockAccess, random: Random)
+    def generate()(implicit worldAccess: IBlockAccess, random: Random)
 
     def +=(component: T) {
         components += component

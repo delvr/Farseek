@@ -12,7 +12,7 @@ class MultiChoiceSetting(category: ConfigCategory, name: String, help: String, d
     protected def parse(s: String) = values.find(_.toString.equalsIgnoreCase(s)).get
 
     protected lazy val valuesHelp =
-        ("Valid values: " + values.map(v => v + (if(v == defaultValue) " (default)" else "")).mkString(", ") + '.') +:
+        ("Valid values: " + values.map(v => v + (if(v == defaultValue()) " (default)" else "")).mkString(", ") + '.') +:
          values.collect { case CustomChoice(n, h) => s"[$n]: ${h()}" }
 
     def nextValue = values((values.indexOf(value) + 1) % values.length)

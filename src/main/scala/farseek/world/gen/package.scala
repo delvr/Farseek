@@ -9,6 +9,7 @@ import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
 import net.minecraft.world.gen.structure.StructureBoundingBox
+import net.minecraftforge.fml.common.registry.GameRegistry
 import scala.collection.mutable
 
 /** World generation utilities.
@@ -24,6 +25,15 @@ package object gen {
 
     /** Maps [[IChunkGenerator]]s with the first field of [[World]] type or subtype declared in their class. */
     val chunkGeneratorWorldClassFields = mutable.Map[Class[_ <: IChunkGenerator], Field]().withDefault(classFields[World](_).head)
+
+    var populatingExtras = false
+
+    /** Replacement method for GameRegistry.generateWorld() that sets [[populatingExtras]] to `true` during mod-provided chunk population. */
+    def generateWorld(xChunk: Int, zChunk: Int, world: World, chunkGenerator: IChunkGenerator, chunkProvider: IChunkProvider) {
+        populatingExtras = true
+        GameRegistry.generateWorld(xChunk, zChunk, world, chunkGenerator, chunkProvider)
+        populatingExtras = false
+    }
 
     def chunkRandom(xChunk: Int, zChunk: Int)(implicit w: WorldProvider): Random = {
         val worldSeed = w.getSeed
@@ -75,7 +85,7 @@ package object gen {
         def contains(xyz: XYZ): Boolean = box.isVecInside(xyz)
         def contains(otherBox: StructureBoundingBox) = otherBox.isWithin(box)
 
-        def intersects(chunk: Chunk) = intersectsChunkAt(chunk.xPosition, chunk.zPosition)
+        def intersects(chunk: Chunk) = intersectsChunkAt(chunk.x, chunk.z)
 
         def intersectsChunkAt(xChunk: Int, zChunk: Int) = box.intersectsWith(xChunk*ChunkSize, zChunk*ChunkSize, xChunk*ChunkSize + iChunkMax, zChunk*ChunkSize + iChunkMax)
 
