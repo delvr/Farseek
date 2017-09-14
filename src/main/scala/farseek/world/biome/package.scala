@@ -14,8 +14,8 @@ package object biome {
     /** Value class for [[Biome]] objects with utility methods. */
     implicit class BiomeValue(val biome: Biome) extends AnyVal {
 
-        /** Returns the base biome for a mutated biome, or the biome itself otherwise.*/
-        def base: Biome = if(biome.isMutation) Biome.getBiomeForId(Biome.MUTATION_TO_BASE_ID_MAP.get(biome)) else biome
+        /** Returns the non-null base biome for a mutated biome, or the biome itself otherwise.*/
+        def base: Biome = if(biome.isMutation) Option(Biome.getBiomeForId(Biome.MUTATION_TO_BASE_ID_MAP.get(biome))).getOrElse(biome) else biome
     }
 
     /** Returns the vanilla grass block. */

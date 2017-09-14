@@ -7,6 +7,10 @@ def modId = modName.toLowerCase()
 // ---------------------------------------------------------------------------------------------------------------------
 // Update
 // ---------------------------------------------------------------------------------------------------------------------
+task wrapper(type: Wrapper) {
+    gradleVersion = gradleWrapperVersion
+}
+
 apply plugin: "scala"
 
 ext.coreModClass = "farseek.core.FarseekCoreMod"
@@ -15,20 +19,10 @@ apply plugin: "net.minecraftforge.gradle.forge"
 minecraft {
     version = forgeRevision
     mappings = mcpMappings
+    useDepAts = true
     runDir = "run"
     clientJvmArgs += jvmArgs
     serverJvmArgs += jvmArgs
-}
-
-task addLibraryTransformers {
-    fileTree(dir: "libs", include: "*.jar").each { File jar ->
-        zipTree(jar).each { File file ->
-            if(file.name.endsWith("_at.cfg")) {
-                deobfMcMCP.addAt(file)
-                deobfMcSRG.addAt(file)
-            }
-        }
-    }
 }
 
 def modAuthorList = [githubUser]
@@ -49,7 +43,7 @@ task modInfo { writeJsonFile(sourceSets.main.resources.srcDirs[0], "mcmod.info",
    useDependencyInformation true
 }])}
 
-tasks.setupDecompWorkspace.dependsOn(addLibraryTransformers, modInfo)
+tasks.setupDecompWorkspace.dependsOn(modInfo)
 
 apply plugin: "idea"
 idea.module.excludeDirs += files(".idea", "gradle", "libs", "run")
@@ -63,6 +57,7 @@ version = "$mcVersion-$modVersion"
 jar.manifest.attributes "FMLAT": "${modId}_at.cfg"
 
 task deobfJar(type: Jar) {
+    manifest = jar.manifest
     classifier = "deobf"
     from sourceSets.main.output
     from "common.gradle"
@@ -102,6 +97,7 @@ if(project.hasProperty("curseForgeId")) {
             curseGradleOptions.javaVersionAutoDetect = false
             addGameVersion "Java 8"
             addGameVersion "1.10.2"
+            addGameVersion "1.10"
             if(modId != "farseek") relations { requiredLibrary "farseek" }
         }
     }

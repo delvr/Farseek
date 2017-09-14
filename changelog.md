@@ -1,2 +1,3 @@
-- Fixe [crash before Forge loading error screen](https://github.com/delvr/Streams/issues/27) with Streams mod when invalid or conflicting mods are present.
-- Fixed [invalid characters in existing-world warnings](https://github.com/delvr/Streams/issues/30) for mods requiring new worlds.
+- Possibly fixed [a performance issue with the structure chunk cache](https://github.com/delvr/Farseek/issues/22).
+- Fixed [a crash when using mods that have Mutated biomes with a null Base biome](https://github.com/delvr/Streams/issues/34).
+- Fixed erroneous confirmation requests for missing Streams mod on startup in SpongeForge.

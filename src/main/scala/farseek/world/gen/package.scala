@@ -8,8 +8,8 @@ import java.lang.reflect.Field
 import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
-import net.minecraft.world.gen.ChunkProviderServer
 import net.minecraft.world.gen.structure.StructureBoundingBox
+import net.minecraftforge.fml.common.registry.GameRegistry
 import scala.collection.mutable
 
 /** World generation utilities.
@@ -26,7 +26,16 @@ package object gen {
     /** Maps [[IChunkGenerator]]s with the first field of [[World]] type or subtype declared in their class. */
     val chunkGeneratorWorldClassFields = mutable.Map[Class[_ <: IChunkGenerator], Field]().withDefault(classFields[World](_).head)
 
-    def chunkRandom(xChunk: Int, zChunk: Int)(implicit w: WorldProvider): Random = {
+    var populatingExtras = false
+
+    /** Replacement method for GameRegistry.generateWorld() that sets [[populatingExtras]] to `true` during mod-provided chunk population. */
+    def generateWorld(xChunk: Int, zChunk: Int, world: World, chunkGenerator: IChunkGenerator, chunkProvider: IChunkProvider) {
+        populatingExtras = true
+        GameRegistry.generateWorld(xChunk, zChunk, world, chunkGenerator, chunkProvider)
+        populatingExtras = false
+    }
+
+  def chunkRandom(xChunk: Int, zChunk: Int)(implicit w: WorldProvider): Random = {
         val worldSeed = w.getSeed
         val random = new Random(worldSeed)
         val xRandom = random.nextLong
