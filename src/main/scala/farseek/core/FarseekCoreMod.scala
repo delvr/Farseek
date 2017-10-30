@@ -10,8 +10,21 @@ import net.minecraftforge.fml.relauncher._
 import scala.collection.JavaConversions._
 import scala.io.Source._
 
-/** Core mod class for Farseek.
+/** Core mod class for Farseek that allows method replacements.
   * @see [[farseek.FarseekMod]] for non-core mod class.
+  *
+  * Client mods can list method replacements in META-INF/farseek_cm.cfg. The format is as follows:
+  *
+  * `replacementMethodClass replacedMethodClass devMethodName obfuscatedMethodName methodArguments`
+  *
+  * For example:
+  *
+  * `repose.block.FallingBlockExtensions net.minecraft.block.Block onBlockAdded func_176213_c (Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;)V`
+  *
+  * This will redirect all method calls of `net.minecraft.block.Block.onBlockAdded(World, BlockPos, IBlockState)` to `repose.block.FallingBlockExtensions.onBlockAdded(Block, World, BlockPos, IBlockState)`.
+  * Note that the replacement method has the same name and parameters as the original one but is static (on a Scala Object) and has the method owner as an additional initial parameter if the original call was an instance method.
+  * Method calls originating from within the replacement method will NOT be redirected, allowing to call the original behavior as needed.
+  *
   * @author delvr
   */
 @SortingIndex(value = FMLDeobftweakerSortIndex + 100) // So we get deobfuscated method call arguments

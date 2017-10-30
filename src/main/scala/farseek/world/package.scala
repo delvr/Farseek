@@ -226,7 +226,7 @@ package object world {
 
     /** Returns true if water freezes at `xyz`.*/
     def isFreezing(xyz: XYZ)(implicit w: World): Boolean = {
-        biomeAt(xyz).getFloatTemperature(xyz) <= 0.15f && w.getLightFor(EnumSkyBlock.BLOCK, xyz) <= 10
+        biomeAt(xyz).getTemperature(xyz) <= 0.15f && w.getLightFor(EnumSkyBlock.BLOCK, xyz) <= 10
     }
 
     /** Returns true an entity of class `entityClass` is present inside the full-block bounding box at `xyz`. */

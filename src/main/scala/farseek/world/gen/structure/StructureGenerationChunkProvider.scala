@@ -1,10 +1,13 @@
 package farseek.world.gen.structure
 
+import com.pg85.otg.forge._
+import com.pg85.otg.forge.generator.OTGChunkGenerator
 import farseek.core._
 import farseek.util.ImplicitConversions._
 import farseek.util.Reflection._
 import farseek.util._
 import net.minecraft.world._
+import net.minecraft.world.gen.IChunkGenerator
 import net.minecraft.world.gen.structure.MapGenStructure
 import net.minecraftforge.common.MinecraftForge._
 import net.minecraftforge.event.world.WorldEvent
@@ -26,14 +29,21 @@ class StructureGenerationChunkProvider(world: WorldServer) extends Logging {
 
     debug(s"Creating structure generation chunk provider for world $worldProvider")
 
+    lazy val otgLoaded = classLoaded("com.pg85.otg.OTG")
+    lazy val spongeLoaded = classLoaded("org.spongepowered.common.interfaces.world.IMixinWorldServer")
     lazy val spongeGeneratorMixin = classOf[WorldServer].getMethod("updateWorldGenerator")
 
-    val generator = if(!spongeLoaded) worldProvider.createChunkGenerator else {
+    val generator: IChunkGenerator = {
+      if(otgLoaded) {
+        val otgEngine: Any = Class.forName("com.pg85.otg.OTG").getMethod("getEngine")(null)
+        new OTGChunkGenerator(otgEngine.getClass.getMethod("getWorld", classOf[World])(otgEngine, world).asInstanceOf[ForgeWorld])
+      } else if(spongeLoaded) {
         val mainGenerator = world.getChunkProvider.chunkGenerator
-        spongeGeneratorMixin.invoke(world)
+        spongeGeneratorMixin(world)
         val copyGenerator = world.getChunkProvider.chunkGenerator
         world.getChunkProvider.chunkGenerator = mainGenerator
         copyGenerator
+      } else worldProvider.createChunkGenerator
     }
 
     classFieldValues[MapGenStructure](generator).foreach(_.range = -1) // Disable structure generators

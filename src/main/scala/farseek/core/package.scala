@@ -10,8 +10,8 @@ package object core {
   var gameDir: File = _
   var isDev: Boolean = _
 
-  lazy val spongeLoaded = try {
-    Class.forName("org.spongepowered.common.interfaces.world.IMixinWorldServer")
+  def classLoaded(name: String): Boolean =  try {
+    Class.forName(name)
     true
   } catch { case e: ClassNotFoundException => false }
 
