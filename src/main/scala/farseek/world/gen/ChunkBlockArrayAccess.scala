@@ -9,7 +9,7 @@ import net.minecraft.world.WorldProvider
 import net.minecraft.world.chunk.ChunkPrimer
 
 /** A [[BlockSetter]] backed by an array of blocks and an array of metadata for a chunk.
-  * It is meant for use during chunk generation by a [[net.minecraft.world.chunk.IChunkGenerator]] or other generator implementation.
+  * It is meant for use during chunk generation by a [[net.minecraft.world.gen.IChunkGenerator]] or other generator implementation.
   * @author delvr
   */
 class ChunkBlockArrayAccess(val worldProvider: WorldProvider, xChunk: Int, zChunk: Int, primer: ChunkPrimer)

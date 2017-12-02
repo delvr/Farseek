@@ -11,6 +11,8 @@ task wrapper(type: Wrapper) {
     gradleVersion = gradleWrapperVersion
 }
 
+repositories.ivy { artifactPattern "https://addons-origin.cursecdn.com/files/[organization]/[module]-[revision].[ext]" }
+
 apply plugin: "scala"
 
 ext.coreModClass = "farseek.core.FarseekCoreMod"
@@ -46,7 +48,13 @@ task modInfo { writeJsonFile(sourceSets.main.resources.srcDirs[0], "mcmod.info",
 tasks.setupDecompWorkspace.dependsOn(modInfo)
 
 apply plugin: "idea"
-idea.module.excludeDirs += files(".idea", "gradle", "libs", "run")
+idea.module {
+    excludeDirs += files(".idea", "gradle", "libs", "out", "run")
+    scopes.COMPILE.plus   += [ configurations.compile ]
+    scopes.TEST.minus     += [ configurations.compile ]
+    scopes.RUNTIME.minus  += [ configurations.compile ]
+    scopes.PROVIDED.minus += [ configurations.compile ]
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Build

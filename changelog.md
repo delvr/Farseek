@@ -1,1 +1,1 @@
-- Now compatible with [Open Terrain Generator](https://www.openterraingenerator.com/) (OTG).
+- Fixed [a crash with Open Terrain Generator](https://github.com/delvr/Farseek/issues/35).
