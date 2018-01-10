@@ -1,6 +1,9 @@
 import groovy.json.JsonBuilder
 import groovy.json.JsonOutput
 
+// https://minecraft.curseforge.com/projects/open-terrain-generator/files
+String otgDependency="2513/685:OpenTerrainGenerator:1.12.2 - v4:jar"
+
 def modName = project.name
 def modId = modName.toLowerCase()
 
@@ -14,6 +17,10 @@ task wrapper(type: Wrapper) {
 repositories.ivy { artifactPattern "https://addons-origin.cursecdn.com/files/[organization]/[module]-[revision].[ext]" }
 
 apply plugin: "scala"
+
+dependencies {
+    compileOnly otgDependency
+}
 
 ext.coreModClass = "farseek.core.FarseekCoreMod"
 def jvmArgs = "-Dfml.coreMods.load=$coreModClass"
@@ -49,6 +56,7 @@ tasks.setupDecompWorkspace.dependsOn(modInfo)
 
 apply plugin: "idea"
 idea.module {
+    inheritOutputDirs = true
     excludeDirs += files(".idea", "gradle", "libs", "out", "run")
     scopes.COMPILE.plus   += [ configurations.compile ]
     scopes.TEST.minus     += [ configurations.compile ]

@@ -1,1 +1,1 @@
-- Fixed [a crash with Open Terrain Generator](https://github.com/delvr/Farseek/issues/35).
+- Fixed [erroneous confirmation requests for missing Streams mod on startup in SpongeForge](https://github.com/delvr/Streams/issues/49). (Mistakenly reported as fixed in 1.12-2.2.)

@@ -13,10 +13,6 @@ buildscript {
 
 apply from: "common.gradle"
 
-dependencies {
-    compileOnly "2503:59/OpenTerrainGenerator:1.12.2 - v2:jar"
-}
-
 jar.manifest {
     attributes "FMLCorePlugin": coreModClass
     attributes "FMLCorePluginContainsFMLMod": "affirmative"
