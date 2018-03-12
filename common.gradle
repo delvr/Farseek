@@ -2,7 +2,7 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonOutput
 
 // https://minecraft.curseforge.com/projects/open-terrain-generator/files
-String otgDependency="2513/685:OpenTerrainGenerator:1.12.2 - v4:jar"
+String otgDependency="2530/367:OpenTerrainGenerator:1.12.2+-+v5:jar"
 
 def modName = project.name
 def modId = modName.toLowerCase()
@@ -14,7 +14,11 @@ task wrapper(type: Wrapper) {
     gradleVersion = gradleWrapperVersion
 }
 
-repositories.ivy { artifactPattern "https://addons-origin.cursecdn.com/files/[organization]/[module]-[revision].[ext]" }
+repositories.ivy {
+    ivyPattern "http://google.com/404" // CurseGradle serves 403's for the missing Ivy .xml file;
+    // we need to trigger a dummy 404 since those are non-fatal and allow attempting to get the .jar file
+    artifactPattern "https://media.forgecdn.net/files/[organization]/[module]-[revision].[ext]"
+}
 
 apply plugin: "scala"
 
@@ -34,7 +38,7 @@ minecraft {
     serverJvmArgs += jvmArgs
 }
 
-def modAuthorList = [githubUser]
+def modAuthorList = modAuthors.split(";")
 def modDependencyList = modDependencies.split(";")
 ext.writeJsonFile = { File dir, String name, Object contents ->
     dir.mkdirs()
@@ -89,7 +93,7 @@ def releaseChangeLog = changeLog + """
 Built using [Forge](http://files.minecraftforge.net/maven/net/minecraftforge/forge/index_${minecraft.version}.html) ${minecraft.forgeVersion} and [MCP mappings](http://export.mcpbot.bspk.rs) ${minecraft.mappings}.
 """
 
-if(project.hasProperty("githubApiKey")) {
+if(project.hasProperty("githubUser") && project.hasProperty("githubApiKey")) {
     apply plugin: "co.riiid.gradle"
     github {
         owner = githubUser
@@ -101,7 +105,7 @@ if(project.hasProperty("githubApiKey")) {
     }
 }
 
-if(project.hasProperty("curseForgeId")) {
+if(project.hasProperty("curseForgeId") && project.hasProperty("curseForgeApiKey")) {
     apply plugin: "com.matthewprenger.cursegradle"
     curseforge {
         apiKey = curseForgeApiKey

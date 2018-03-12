@@ -1,1 +1,5 @@
-- Fixed [erroneous confirmation requests for missing Streams mod on startup in SpongeForge](https://github.com/delvr/Streams/issues/49). (Mistakenly reported as fixed in 1.12-2.2.)
+- Fixed [a crash caused by unused Farseek/Streams/Repose jars in "mods/" subdirectories](https://github.com/delvr/Streams/issues/52).
+- Fixed [a crashed caused by recursive chunk generator creation with mod combinations such as ComputerCraft + Mo'Creatures](https://github.com/delvr/Streams/issues/53).
+- Possibly fixed [a crash vaused by modded blocks with inconsistent Ore Dictionary entries](https://github.com/delvr/Repose/issues/17).
+- Added a `modAuthors` build property to fix [a build error when `githubUser` is undefined](https://github.com/delvr/Farseek/issues/36).
+- Fixed 403/Unauthorized errors from CurseForge dependencies during project builds.

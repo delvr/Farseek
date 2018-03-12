@@ -15,11 +15,9 @@ package object core {
     true
   } catch { case e: ClassNotFoundException => false }
 
-  final def allFiles(path: File): Array[File] =
-    if(path == null || !path.exists || !path.canRead) Array()
-    else if(path.isFile) Array(path)
-    else if(path.isDirectory) path.listFiles.flatMap(allFiles)
-    else Array()
+  def files(dir: File): Array[File] =
+    if(dir == null || !dir.exists || !dir.isDirectory || !dir.canRead) Array()
+    else dir.listFiles
 
   def using[T <: { def close(): Unit }, R](resource: T)(f: T => R): R =
     try f(resource) finally if(resource != null) resource.close()

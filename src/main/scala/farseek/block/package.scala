@@ -110,7 +110,7 @@ package object block {
                 displayName
             else {
               val itemStack = new ItemStack(block)
-              (if(itemStack.getItem == null) None else getOreIDs(itemStack).headOption) match {
+              (if(itemStack.isEmpty || itemStack.getItem == null) None else getOreIDs(itemStack).headOption) match {
                 case Some(id) =>
                   val dictionaryKey = getOreName(id)
                   val dictionaryName = s"tile.$dictionaryKey.name"

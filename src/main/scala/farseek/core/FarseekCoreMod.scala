@@ -5,6 +5,7 @@ import java.io._
 import java.net.URL
 import java.util.zip.ZipFile
 import net.minecraft.launchwrapper._
+import net.minecraftforge.common.ForgeVersion._
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.SortingIndex
 import net.minecraftforge.fml.relauncher._
 import scala.collection.JavaConversions._
@@ -50,7 +51,8 @@ class FarseekClassTransformer extends IClassTransformer with Logging {
   private val ReplacementsFilepath = "META-INF/farseek_cm.cfg"
 
   private lazy val replacements: Map[ReplacedMethod, MethodReplacement] = {
-    val allReplacements = (allFiles(new File(gameDir, "mods")).flatMap(methodReplacements) ++
+    val modsDir = new File(gameDir, "mods")
+    val allReplacements = ((files(modsDir) ++ files(new File(modsDir, mcVersion))).flatMap(methodReplacements) ++
       Launch.classLoader.getResources(ReplacementsFilepath).flatMap(methodReplacements)).toSet
     allReplacements.groupBy(_._1).values.find(_.size > 1).foreach(conflicts =>
       sys.error(s"Found conflicting method replacements:\n  ${conflicts.mkString("\n")}"))

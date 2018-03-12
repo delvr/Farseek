@@ -23,6 +23,8 @@ import scala.collection.mutable
   */
 abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimensionId: Int = SurfaceDimensionId) extends Logging {
 
+    private var generating = false // Avoid recursion caused by mods scanning chunks during ChunkGenerator initialization
+
     protected val invalidWorldTypes = Set[WorldType]()
     protected val structures = mutable.Map[XZ, Option[T]]()
 
@@ -36,9 +38,12 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     }
 
     def onChunkGeneration(world: WorldServer, generator: IChunkGenerator, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
-      if(world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
-          generator == world.getChunkProvider.chunkGenerator) // Don't recurse events when generating for structures
+      if(!generating && world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
+          generator == world.getChunkProvider.chunkGenerator) { // Don't recurse events when generating for structures
+              generating = true
               generate(world, xChunk, zChunk, primer)
+              generating = false
+      }
     }
 
     protected def generate(world: WorldServer, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
