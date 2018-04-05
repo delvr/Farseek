@@ -34,7 +34,10 @@ package object world {
 
     private val populatingField = classOf[Chunk].getDeclaredField("populating")
     /**True while the game is generating or decorating chunks. */
-    def populating: Boolean = populatingField.value()
+    def populating: Boolean = Option(populatingField.accessible.get(null)).exists {
+        case b: java.lang.Boolean => b.booleanValue
+        case _ => true
+    }
 
     // ----------------------------------------------------------------------------------------------------------------
     // Y-ranges

@@ -2,7 +2,7 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonOutput
 
 // https://minecraft.curseforge.com/projects/open-terrain-generator/files
-String otgDependency="2530/367:OpenTerrainGenerator:1.12.2+-+v5:jar"
+String otgDependency="2542/614:OpenTerrainGenerator:1.12.2+-+v6:jar"
 
 def modName = project.name
 def modId = modName.toLowerCase()
