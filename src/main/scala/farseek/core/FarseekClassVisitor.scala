@@ -20,16 +20,13 @@ class FarseekClassVisitor(bytecode: Array[Byte], className: String, replacements
     new MethodCallRedirector(super.visitMethod(accessFlags, methodName, descriptor, signature, exceptions), methodName)
 
   class MethodCallRedirector(visitor: MethodVisitor, methodName: String) extends MethodVisitor(api, visitor) {
-    //trace(s"Visiting method $className/$methodName")
     override def visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) = {
-      //trace(s"  Visiting method call to $owner/$name$descriptor")
       if(opcode == INVOKESPECIAL && owner != className) // super() call
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
       else replacements.get(ReplacedMethod(owner, name, descriptor)) match {
         case Some(MethodReplacement(replacementClassName, replacementMethodName)) if !(methodName == replacementMethodName &&
           (className == replacementClassName || className == replacementClassName+'$')) => // prevent recursion
-          //trace(s"Redirecting method call in $className/$methodName from ${r.className}/${r.methodName}" +
-          //      s" to ${r.replacementClassName}/${r.replacementMethodName}")
+          trace(s"Redirecting method call in $className/$methodName from $owner/$name to $replacementClassName/$replacementMethodName")
           val newDescriptor = if(opcode == INVOKESTATIC) descriptor
                               else descriptor.head + getObjectType(owner).getDescriptor + descriptor.tail
           super.visitMethodInsn(INVOKESTATIC, replacementClassName, replacementMethodName, newDescriptor, false)

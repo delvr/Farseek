@@ -10,6 +10,7 @@ import net.minecraft.world.World
   * @see [[http://ropas.snu.ac.kr/~bruno/papers/TypeClasses.pdf Type Classes as Objects and Implicits]]
   * @author delvr
   */
+@deprecated("Use farseek.world.WorldOps instead", "2.3")
 trait BlockWriteAccess[T]  {
 
     def setBlockAt(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true)(implicit t: T): Boolean
@@ -20,11 +21,13 @@ trait BlockWriteAccess[T]  {
 /** Top-level container for implicit objects that belong to the [[BlockWriteAccess]] type class.
   * @author delvr
   */
+@deprecated("Use farseek.world.WorldOps instead", "2.3")
 object BlockWriteAccess {
 
     /** [[BlockWriteAccess]] implementation for [[World]]s.
       * @author delvr
       */
+    @deprecated("Use farseek.world.WorldOps instead", "2.3")
     implicit object WorldBlockAccess extends BlockWriteAccess[World] {
 
         def setBlockAt(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true)(implicit w: World) =
@@ -38,6 +41,7 @@ object BlockWriteAccess {
     /** [[BlockWriteAccess]] implementation for [[BlockSetter]] implementations.
       * @author delvr
       */
+    @deprecated("Use farseek.world.WorldOps instead", "2.3")
     implicit object NonWorldBlockWriteAccess extends BlockWriteAccess[BlockSetter] {
 
         def setBlockAt(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true)(implicit w: BlockSetter) =

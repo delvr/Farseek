@@ -6,6 +6,7 @@ import farseek.world.Direction._
 /** A system for translating X/Y/Z local coordinates into world coordinates, and vice-versa.
   * @author delvr
   */
+@deprecated("Use farseek.world.IBlockAccessOps with absolute coordinates instead", "2.3")
 trait CoordinateSystem {
 
     def xWorld(x: Int, z: Int): Int
@@ -28,6 +29,7 @@ trait CoordinateSystem {
 /** Identity coordinates where local and world coordinates are the same.
   * @author delvr
   */
+@deprecated("Use farseek.world.IBlockAccessOps with absolute coordinates instead", "2.3")
 object AbsoluteCoordinates extends CoordinateSystem {
 
     def xWorld(x: Int, z: Int) = x
@@ -42,6 +44,7 @@ object AbsoluteCoordinates extends CoordinateSystem {
 /** A coordinate system where local coordinates are shifted by `xWorldMin/yWorldMin/zWorldMin`.
   * @author delvr
   */
+@deprecated("Use farseek.world.IBlockAccessOps with absolute coordinates instead", "2.3")
 class RelativeCoordinates(xWorldMin: Int, yWorldMin: Int, zWorldMin: Int) extends CoordinateSystem {
 
     def xWorld(x: Int, z: Int) = xWorldMin + x
@@ -57,6 +60,7 @@ class RelativeCoordinates(xWorldMin: Int, yWorldMin: Int, zWorldMin: Int) extend
   * translation rules are the same as those used in vanilla Minecraft structures such as villages and strongholds.
   * @author delvr
   */
+@deprecated("Use farseek.world.IBlockAccessOps with absolute coordinates instead", "2.3")
 class DirectedCoordinates(xWorldMin: Int, yWorldMin: Int, zWorldMin: Int, zLocalMax: Int, orientation: Direction)
         extends RelativeCoordinates(xWorldMin, yWorldMin, zWorldMin) {
 

@@ -59,4 +59,19 @@ object Reflection {
             try method.invoke(obj, args.map(_.asInstanceOf[AnyRef]):_*).asInstanceOf[R]
             catch { case ex: InvocationTargetException => throw ex.getCause }
     }
+
+    implicit class ClassValue(val classe: Class[_]) extends AnyVal {
+
+        def field(name: String): Option[Field] =
+            try Some(classe.getDeclaredField(name).accessible)
+            catch { case _: NoSuchFieldException => None }
+
+        def declaredMethod(name: String, params: Class[_]*): Option[Method] =
+            try Some(classe.getDeclaredMethod(name, params:_*).accessible)
+            catch { case _: NoSuchMethodException => None }
+
+        def publicMethod(name: String, params: Class[_]*): Option[Method] =
+          try Some(classe.getMethod(name, params:_*).accessible)
+          catch { case _: NoSuchMethodException => None }
+    }
 }

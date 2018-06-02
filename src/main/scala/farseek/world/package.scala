@@ -6,16 +6,19 @@ import farseek.util.Reflection._
 import farseek.util.{XYZ, _}
 import farseek.world.biome._
 import farseek.world.{AbsoluteCoordinates, CoordinateSystem}
+import java.lang.reflect.Method
 import net.minecraft.block.state._
 import net.minecraft.block.{BlockFalling, _}
 import net.minecraft.entity.Entity
 import net.minecraft.init.Blocks._
 import net.minecraft.tileentity.TileEntity
+import net.minecraft.util.math.BlockPos
 import net.minecraft.world.WorldType._
 import net.minecraft.world._
 import net.minecraft.world.biome.Biome
 import net.minecraft.world.chunk.Chunk
 import scala.collection.SeqView
+import scala.collection.mutable
 
 /** World and coordinates-related utility functions.
   *
@@ -31,6 +34,10 @@ package object world {
     val SurfaceDimensionId = 0
     val NetherDimensionId = -1
     val EndDimensionId = 1
+
+    // CubicChunks support
+    private val worldCustomYMinMethods = mutable.Map[Class[_], Option[Method]]()
+    private val worldCustomYTopMethods = mutable.Map[Class[_], Option[Method]]()
 
     private val populatingField = classOf[Chunk].getDeclaredField("populating")
     /**True while the game is generating or decorating chunks. */
@@ -156,6 +163,7 @@ package object world {
     // ----------------------------------------------------------------------------------------------------------------
 
     /** Value class for [[IBlockAccess]] objects with utility methods. */
+    @deprecated("Use farseek.world.IBlockAccessOps instead", "2.3")
     implicit class IBlockAccessValue(val bac: IBlockAccess) extends AnyVal {
 
         def worldProvider: WorldProvider = bac match {
@@ -185,9 +193,11 @@ package object world {
         /** Returns the "actual height" of `bac` (the lower part of each chunk where terrain is generated). */
         def height = bac.getActualHeight
 
-        def yMin = 0
+        def yMin: Int = worldCustomYMinMethods.getOrElseUpdate(bac.getClass,
+          bac.getClass.publicMethod("getMinHeight")).fold(0)(_(bac).asInstanceOf[Integer])
 
-        def yMax = height - 1
+        def yMax: Int = worldCustomYTopMethods.getOrElseUpdate(bac.getClass,
+          bac.getClass.publicMethod("getMaxHeight")).fold(height)(_(bac).asInstanceOf[Integer]) - 1
 
         /** Returns a Y-coordinate at or above the top non-air block at x/z. */
         def yTop(x: Int, z: Int) = chunkAt(x, z) match {
@@ -203,6 +213,7 @@ package object world {
     }
 
     /** Value class for [[World]]s with utility methods. */
+    @deprecated("Use farseek.world.WorldOps instead", "2.3")
     implicit class WorldValue(val world: World) extends AnyVal {
 
       def setBlockAt(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true): Boolean =
@@ -215,6 +226,8 @@ package object world {
 
     /** Value class for [[WorldProvider]]s with utility methods. */
     implicit class WorldProviderValue(val provider: WorldProvider) extends AnyVal {
+
+        @deprecated("Use net.minecraft.world.World.getSeaLevel() instead", "2.3")
         def seaLevel: Option[Int] = if(provider.isSurfaceWorld && provider.getHorizon > 0d) Some(provider.getHorizon.toInt - 1) else None
 
         def lavaLevel: Option[Int] =
@@ -222,6 +235,22 @@ package object world {
             else if(provider.doesWaterVaporize) Some(31)
             else None
     }
+
+    /** Value class for [[IBlockAccess]] objects with utility methods. */
+    implicit class IBlockAccessOps(val w: IBlockAccess) extends AnyVal {
+        def apply(pos: BlockPos): IBlockState = w.getBlockState(pos)
+    }
+
+    /** Value class for [[World]]s with utility methods. */
+    implicit class WorldOps(val w: World) extends AnyVal {
+        def update(pos: BlockPos, state: IBlockState): Boolean = w.setBlockState(pos, state, if(populating) 2 else 3)
+
+        def displace(pos: BlockPos, oldState: IBlockState, newState: IBlockState): Boolean = {
+            if(!populating) oldState.getBlock.dropBlockAsItem(w, pos, oldState, 0)
+            w(pos) = newState
+        }
+    }
+
 
     // ----------------------------------------------------------------------------------------------------------------
     // World-specific

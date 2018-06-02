@@ -2,7 +2,7 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonOutput
 
 // https://minecraft.curseforge.com/projects/open-terrain-generator/files
-String otgDependency="2542/614:OpenTerrainGenerator:1.12.2+-+v6:jar"
+String otgDependency="2542/614:OpenTerrainGenerator:1.12.2%20-%20v6:jar"
 
 def modName = project.name
 def modId = modName.toLowerCase()
@@ -17,7 +17,7 @@ task wrapper(type: Wrapper) {
 repositories.ivy {
     ivyPattern "http://google.com/404" // CurseGradle serves 403's for the missing Ivy .xml file;
     // we need to trigger a dummy 404 since those are non-fatal and allow attempting to get the .jar file
-    artifactPattern "https://media.forgecdn.net/files/[organization]/[module]-[revision].[ext]"
+    artifactPattern "https://files.forgecdn.net/files/[organization]/[module]-[revision].[ext]"
 }
 
 apply plugin: "scala"

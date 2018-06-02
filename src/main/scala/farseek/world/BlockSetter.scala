@@ -8,6 +8,7 @@ import net.minecraft.world.IBlockAccess
 /** A [[ServerBlockAccess]] that allows write access by setting blocks, metadata and tile entities.
   * @author delvr
   */
+@deprecated("Use farseek.world.WorldOps instead", "2.3")
 trait BlockSetter extends ServerBlockAccess {
 
     def setBlockAt(xyz: XYZ, block: Block, data: Int = 0, notifyNeighbors: Boolean = true): Boolean
@@ -18,6 +19,7 @@ trait BlockSetter extends ServerBlockAccess {
 /** A [[BlockSetter]] that wraps an [[IBlockAccess]] usable as a [[BlockWriteAccess]].
   * @author delvr
   */
+@deprecated("Use farseek.world.WorldOps instead", "2.3")
 trait WrappedBlockSetter[T <: IBlockAccess] extends WrappedBlockAccess with BlockSetter {
 
     implicit protected val wrapped: T

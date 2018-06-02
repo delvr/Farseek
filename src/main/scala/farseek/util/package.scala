@@ -16,6 +16,7 @@ package object util {
     type XZ = (Int, Int)
 
     /** 3D coordinates (3-tuple of Ints) */
+    @deprecated("Use net.minecraft.util.math.BlockPos instead", "2.3")
     type XYZ = (Int, Int, Int)
 
     def unsupported: Nothing = throw new UnsupportedOperationException
@@ -75,6 +76,7 @@ package object util {
     }
 
     /** Value class for [[XYZ]] 3D coordinates with utility methods. */
+    @deprecated("Use farseek.util.PosValue instead", "2.3")
     implicit class XyzValue(val xyz: XYZ) extends AnyVal {
         def x = xyz._1
         def y = xyz._2

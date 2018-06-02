@@ -16,6 +16,7 @@ import net.minecraftforge.oredict.OreDictionary._
   */
 package object block {
 
+    @deprecated("Use net.minecraft.block.state.IBlockState instead", "2.3")
     type BlockAndData = (Block, Int)
 
     val DataValues = 0 to 15
@@ -124,6 +125,7 @@ package object block {
     }
 
     /** Value class for a block-and-metadata tuple to allow member access by name. */
+    @deprecated("Use net.minecraft.block.state.IBlockState instead", "2.3")
     implicit class BlockAndDataValue(val bd: BlockAndData) extends AnyVal {
         def block = bd._1
         def data  = bd._2

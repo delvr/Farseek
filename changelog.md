@@ -1,1 +1,4 @@
-- Fixed [a Streams crash with Forge revision 2652 and higher](https://github.com/delvr/Farseek/issues/37).
+- Made client mods such as Repose 1.6+ compatible with SpongeForge.
+- Fixed a [crash with Repose and Cubic Chunks](https://github.com/delvr/Repose/issues/20) (requires Repose 1.6 or newer).
+- Internally, fixed build error when downloading dependencies from CurseForge.
+- Internally, deprecated most of the world-access API which will be replaced in Farseek 3.0.
