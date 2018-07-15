@@ -4,6 +4,7 @@ import farseek.core.MethodReplacements.replacements
 import farseek.util.Logging
 import java.io._
 import java.net.URL
+import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import net.minecraft.launchwrapper._
 import net.minecraftforge.common.ForgeVersion._
@@ -117,9 +118,16 @@ object MethodReplacements extends Logging {
   private def methodReplacements(file: File): Seq[(ReplacedMethod, MethodReplacement)] = {
     trace(s"Checking $file for method replacements")
     if(!file.getName.endsWith(".jar")) Seq()
-    else logged(file, using(new ZipFile(file))(zipFile =>
-      Option(zipFile.getEntry(ReplacementsFilepath)).fold(Seq[(ReplacedMethod, MethodReplacement)]())(entry =>
-         methodReplacements(zipFile.getInputStream(entry)))))
+    else {
+      try logged(file, using(new ZipFile(file))(zipFile =>
+        Option(zipFile.getEntry(ReplacementsFilepath)).fold(Seq[(ReplacedMethod, MethodReplacement)]())(entry =>
+          methodReplacements(zipFile.getInputStream(entry)))))
+      catch {
+        case ze: ZipException =>
+          warn(s"$file: ${ze.getLocalizedMessage}")
+          Seq()
+      }
+    }
   }
 
   private def methodReplacements(url: URL): Seq[(ReplacedMethod, MethodReplacement)] = logged(url, methodReplacements(url.openStream))
