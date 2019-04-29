@@ -38,12 +38,15 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
     }
 
     def onChunkGeneration(world: WorldServer, generator: IChunkGenerator, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
-      if(!generating && world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType) &&
-          generator == world.getChunkProvider.chunkGenerator) { // Don't recurse events when generating for structures
-              generating = true
-              generate(world, xChunk, zChunk, primer)
-              generating = false
-      }
+        if(!generating && world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType)) {
+            val structureChunkProvider = StructureGenerationChunkProvider(world)
+            // Don't recurse events when generating for structures
+            if(generator != structureChunkProvider.generator && !structureChunkProvider.baseGenerator.contains(generator)) {
+                generating = true
+                generate(world, xChunk, zChunk, primer)
+                generating = false
+            }
+        }
     }
 
     protected def generate(world: WorldServer, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
@@ -53,7 +56,7 @@ abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimension
               implicit val chunkProvider = new StructureGenerationBlockAccess(StructureGenerationChunkProvider(world))
               implicit val random = chunkRandom(xStructureChunk, zStructureChunk)(world)
               val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,             (zStructureChunk - chunksRange)*ChunkSize,
-                                            (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
+                                          (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
                 val structureOption = createStructure(bounds).flatMap { structure =>
                     structure.generate()
                     if(structure.isValid) {

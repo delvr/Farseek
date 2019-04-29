@@ -105,7 +105,7 @@ package object block {
         if(block == STAINED_HARDENED_CLAY)
             STAINED_HARDENED_CLAY.getLocalizedName
         else {
-            val name = block.getUnlocalizedName
+            val name = Block.REGISTRY.getNameForObject(block).toString
             val displayName = block.getLocalizedName
             if(displayName != name + ".name")
                 displayName

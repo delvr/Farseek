@@ -4,9 +4,8 @@
     <profile name="Gradle 1" modules="Farseek">
       <option name="deprecationWarnings" value="true" />
       <option name="uncheckedWarnings" value="true" />
-      <parameters>
-        <parameter value="-target:jvm-1.8" />
-      </parameters>
+      <option name="featureWarnings" value="true" />
+      <option name="explainTypeErrors" value="true" />
     </profile>
   </component>
 </project>

@@ -73,6 +73,9 @@ class FarseekClassTransformer extends IClassTransformer with Logging {
     * we move it after the Sponge proxy. (This cannot be done with @SortIndex since Sponge places itself last manually.)
     * We also need to exclude the Farseek transformer from Sponge's pre-mixin transformations performed by the proxy.
     * For these pre-mixin transformations, we use the FarseekSpongeClassTransformer which only transforms Sponge mixin classes.
+    * Finally we re-enable transformations on TrackingUtil so we can intercept calls such as Block.updateTick(); this may break what
+    * https://github.com/SpongePowered/SpongeForge/commit/7c5bb8ac8d7cd9e9098f06c6a2242103e1c0c614#diff-1e61645be86b333938a9f9575cf5fc81
+    * was fixing, so we will look for an alternative if possible.
     */
   private def moveAfterSponge(): Unit = {
     if(!checkedSponge) {
@@ -90,6 +93,11 @@ class FarseekClassTransformer extends IClassTransformer with Logging {
         val mixinEnvironmentClass = Class.forName("org.spongepowered.asm.mixin.MixinEnvironment")
         val mixinEnvironment = mixinEnvironmentClass.getDeclaredMethod("getCurrentEnvironment").invoke(null)
         mixinEnvironmentClass.getDeclaredMethod("addTransformerExclusion", classOf[String]).invoke(mixinEnvironment, classOf[FarseekClassTransformer].getName)
+        info("Re-enabling transformations on Sponge TrackingUtil")
+        // Undoes https://github.com/SpongePowered/SpongeForge/commit/7c5bb8ac8d7cd9e9098f06c6a2242103e1c0c614#diff-1e61645be86b333938a9f9575cf5fc81
+        val transformerExclusionsField = Launch.classLoader.getClass.getDeclaredField("transformerExceptions")
+        transformerExclusionsField.setAccessible(true)
+        transformerExclusionsField.get(Launch.classLoader).asInstanceOf[java.util.Set[String]].remove("org.spongepowered.common.event.tracking.TrackingUtil")
       }
     }
   }

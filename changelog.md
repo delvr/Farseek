@@ -1,1 +1,3 @@
-- Fixed crash caused by empty or invalid jar files in the mod directory. (Issues [Farseek#42](https://github.com/delvr/Farseek/issues/42) and [Streams#64](https://github.com/delvr/Streams/issues/64).)
+- Fixed [a worldgen crash when using SpongeForge with OTG](https://github.com/delvr/Farseek/issues/45).
+- Fixed absent Streams when using SpongeForge with certain terrain generators such as Biomes O' Plenty.
+- Fixed broken falling block behavior when using Repose with SpongeForge v7.1.6-RC3657 and newer.

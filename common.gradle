@@ -1,8 +1,10 @@
-import groovy.json.JsonBuilder
-import groovy.json.JsonOutput
+import groovy.json.*
+import groovy.util.slurpersupport.GPathResult
+import groovy.xml.StreamingMarkupBuilder
+import groovy.xml.XmlUtil
 
 // https://minecraft.curseforge.com/projects/open-terrain-generator/files
-String otgDependency="2542/614:OpenTerrainGenerator:1.12.2%20-%20v6:jar"
+String otgDependency="2542/614:OpenTerrainGenerator:1.12.2+-+v6:jar"
 
 def modName = project.name
 def modId = modName.toLowerCase()
@@ -14,13 +16,31 @@ task wrapper(type: Wrapper) {
     gradleVersion = gradleWrapperVersion
 }
 
-repositories.ivy {
-    ivyPattern "http://google.com/404" // CurseGradle serves 403's for the missing Ivy .xml file;
-    // we need to trigger a dummy 404 since those are non-fatal and allow attempting to get the .jar file
-    artifactPattern "https://files.forgecdn.net/files/[organization]/[module]-[revision].[ext]"
+repositories {
+    mavenLocal()
+    maven { url "https://minecraft.curseforge.com/api/maven/" } // See https://authors.curseforge.com/docs/api
+}
+
+// CurseForge serves fatal 403's for the missing Ivy .xml files;
+// we need to trigger a dummy 404 since those are non-fatal and allow attempting to get the .jar file
+String dummy404IvyPattern = "http://google.com/404"
+String curseForgeMavenPattern = "[organization]/[module]-[revision].[ext]"
+repositories.ivy { // CurseForge direct download URL for mods that don't conform to the Maven structure
+    ivyPattern dummy404IvyPattern
+    artifactPattern "https://files.forgecdn.net/files/$curseForgeMavenPattern"
+}
+repositories.ivy { // Fallback URL for CurseForge direct download
+    ivyPattern dummy404IvyPattern
+    artifactPattern "https://media.forgecdn.net/files/$curseForgeMavenPattern"
 }
 
 apply plugin: "scala"
+tasks.withType(ScalaCompile) {
+    targetCompatibility = "" // Suppress default of 1.8 until Forge's Scala is updated to 2.11.5+ (https://issues.scala-lang.org/browse/SI-8966)
+    scalaCompileOptions.deprecation = true
+    scalaCompileOptions.unchecked = true
+    scalaCompileOptions.additionalParameters = ["-explaintypes", "-feature"]
+}
 
 dependencies {
     compileOnly otgDependency
@@ -28,12 +48,14 @@ dependencies {
 
 ext.coreModClass = "farseek.core.FarseekCoreMod"
 def jvmArgs = "-Dfml.coreMods.load=$coreModClass"
+File clientRunDir = file("run/client")
+File serverRunDir = file("run/server")
 apply plugin: "net.minecraftforge.gradle.forge"
 minecraft {
     version = forgeRevision
     mappings = mcpMappings
     useDepAts = true
-    runDir = "run"
+    runDir = clientRunDir.path
     clientJvmArgs += jvmArgs
     serverJvmArgs += jvmArgs
 }
@@ -68,6 +90,35 @@ idea.module {
     scopes.PROVIDED.minus += [ configurations.compile ]
 }
 
+void editXmlFile(File file, Closure f) {
+    def xml = new XmlSlurper().parse(file)
+    f(xml)
+    file.withWriter { writer -> XmlUtil.serialize( new StreamingMarkupBuilder().bind{mkp.yield xml}, writer) }
+}
+
+File workspaceFile = file(".idea/workspace.xml")
+genIntellijRuns {
+    doFirst {
+        editXmlFile(workspaceFile) { GPathResult workspace ->
+            workspace.component.find { GPathResult node -> node.@name == "RunManager"}.configuration.findAll { GPathResult node ->
+                node.@name == "Minecraft Client" || node.@name == "Minecraft Server" }*.replaceNode{}
+        }
+    }
+    doLast {
+        editXmlFile(workspaceFile) { GPathResult workspace ->
+            workspace.component.find { GPathResult node -> node.@name == "RunManager"}.configuration.findAll { GPathResult node ->
+                node.@name == "Minecraft Client" || node.@name == "Minecraft Server" }*."@singleton" = "true"
+            GPathResult runServerConfig = workspace.component.find { GPathResult node ->
+                node.@name == "RunManager"}.configuration.find { GPathResult configuration -> configuration.@name == "Minecraft Server" }
+            runServerConfig.option.find { GPathResult option ->
+                option.@name == "WORKING_DIRECTORY" }.@value = serverRunDir.path
+        }
+        clientRunDir.mkdirs()
+        serverRunDir.mkdirs()
+    }
+}
+
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Build
 // ---------------------------------------------------------------------------------------------------------------------
@@ -83,7 +134,30 @@ task deobfJar(type: Jar) {
     from "common.gradle"
 }
 
-tasks.jar.dependsOn(deobfJar)
+tasks.jar.dependsOn(deobfJar, sourceJar)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Install
+// ---------------------------------------------------------------------------------------------------------------------
+task install { dependsOn(jar) }
+
+if(project.hasProperty("minecraftClientDir")) {
+    task installClient(type: Sync, dependsOn: reobfJar) {
+        from jar
+        into "$minecraftClientDir/mods"
+        preserve { exclude "${jar.baseName}*.jar" }
+    }
+    tasks.install.dependsOn(installClient)
+}
+
+if(project.hasProperty("minecraftServerDir")) {
+    task installServer(type: Sync, dependsOn: reobfJar) {
+        from jar
+        into "$minecraftServerDir/mods"
+        preserve { exclude "${jar.baseName}*.jar" }
+    }
+    tasks.install.dependsOn(installServer)
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Release
@@ -116,7 +190,7 @@ if(project.hasProperty("curseForgeId") && project.hasProperty("curseForgeApiKey"
             changelogType = "markdown"
             addGameVersion "1.12.1"
             addGameVersion "1.12.2"
-            if(modId != "farseek") relations { requiredLibrary "farseek" }
+            if(modId != "farseek") relations { requiredDependency "farseek" }
         }
     }
 }

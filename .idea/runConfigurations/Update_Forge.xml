@@ -14,10 +14,11 @@
           <option value="genIntellijRuns" />
         </list>
       </option>
-      <option name="vmOptions" value="-Xmx2G" />
+      <option name="vmOptions" value="" />
     </ExternalSystemSettings>
+    <GradleScriptDebugEnabled>true</GradleScriptDebugEnabled>
     <RunnerSettings RunnerId="ExternalSystemTaskRunner" />
     <ConfigurationWrapper RunnerId="ExternalSystemTaskRunner" />
-    <method />
+    <method v="2" />
   </configuration>
 </component>

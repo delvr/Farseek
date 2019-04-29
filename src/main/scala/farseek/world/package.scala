@@ -173,7 +173,7 @@ package object world {
         }
 
         private def chunkAt(x: Int, z: Int): Option[Chunk] = Option(bac match {
-            case w: World       => w.getChunkFromBlockCoords(x, z)
+            case w: World       => w.getChunk(x*16, z*16)
             case c: ChunkCache  => c.chunkArray(c.chunkX + (x >> 4))(c.chunkZ + (z >> 4))
             case c: ChunkAccess => c.chunkAt(x, z)
             case _ => null
