@@ -5,13 +5,18 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath "net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT"
-        classpath "co.riiid:gradle-github-plugin:0.4.2"
-        classpath "gradle.plugin.com.matthewprenger:CurseGradle:1.1.2"
+        classpath group: "net.minecraftforge.gradle",        name: "ForgeGradle",          version: "2.3-SNAPSHOT"
+        classpath group: "gradle.plugin.com.matthewprenger", name: "CurseGradle",          version: "+", changing: true
+        classpath group: "com.wynprice.cursemaven",          name: "CurseMaven",           version: "+", changing: true
+        classpath group: "co.riiid",                         name: "gradle-github-plugin", version: "+", changing: true
     }
 }
 
 apply from: "common.gradle"
+
+dependencies {
+    compileOnly "curse.maven:open-terrain-generator-1.12.2-v8:2811144"
+}
 
 jar.manifest {
     attributes "FMLCorePlugin": coreModClass

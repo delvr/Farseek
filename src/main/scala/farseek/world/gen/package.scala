@@ -24,7 +24,7 @@ package object gen {
     val iChunkMax = ChunkSize - 1
 
     /** Maps [[IChunkGenerator]]s with the first field of [[World]] type or subtype declared in their class. */
-    val chunkGeneratorWorldClassFields = mutable.Map[Class[_ <: IChunkGenerator], Field]().withDefault(classFields[World](_).head)
+    val chunkGeneratorWorldClassFields = mutable.Map[Class[_ <: IChunkGenerator], Field]()
 
     def chunkRandom(xChunk: Int, zChunk: Int)(implicit w: WorldProvider): Random = {
         val worldSeed = w.getSeed

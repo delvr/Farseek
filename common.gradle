@@ -3,35 +3,14 @@ import groovy.util.slurpersupport.GPathResult
 import groovy.xml.StreamingMarkupBuilder
 import groovy.xml.XmlUtil
 
-// https://minecraft.curseforge.com/projects/open-terrain-generator/files
-String otgDependency="2542/614:OpenTerrainGenerator:1.12.2+-+v6:jar"
-
 def modName = project.name
 def modId = modName.toLowerCase()
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Update
 // ---------------------------------------------------------------------------------------------------------------------
-task wrapper(type: Wrapper) {
+wrapper {
     gradleVersion = gradleWrapperVersion
-}
-
-repositories {
-    mavenLocal()
-    maven { url "https://minecraft.curseforge.com/api/maven/" } // See https://authors.curseforge.com/docs/api
-}
-
-// CurseForge serves fatal 403's for the missing Ivy .xml files;
-// we need to trigger a dummy 404 since those are non-fatal and allow attempting to get the .jar file
-String dummy404IvyPattern = "http://google.com/404"
-String curseForgeMavenPattern = "[organization]/[module]-[revision].[ext]"
-repositories.ivy { // CurseForge direct download URL for mods that don't conform to the Maven structure
-    ivyPattern dummy404IvyPattern
-    artifactPattern "https://files.forgecdn.net/files/$curseForgeMavenPattern"
-}
-repositories.ivy { // Fallback URL for CurseForge direct download
-    ivyPattern dummy404IvyPattern
-    artifactPattern "https://media.forgecdn.net/files/$curseForgeMavenPattern"
 }
 
 apply plugin: "scala"
@@ -42,9 +21,7 @@ tasks.withType(ScalaCompile) {
     scalaCompileOptions.additionalParameters = ["-explaintypes", "-feature"]
 }
 
-dependencies {
-    compileOnly otgDependency
-}
+apply plugin: "com.wynprice.cursemaven"
 
 ext.coreModClass = "farseek.core.FarseekCoreMod"
 def jvmArgs = "-Dfml.coreMods.load=$coreModClass"

@@ -1,16 +1,13 @@
 package farseek.world.gen.structure
 
 import farseek.util.ImplicitConversions._
-import farseek.util.Reflection._
 import farseek.util._
 import farseek.world._
 import farseek.world.gen._
 import java.util.Random
 import net.minecraft.world._
 import net.minecraft.world.chunk._
-import net.minecraft.world.gen.IChunkGenerator
 import net.minecraftforge.common.MinecraftForge._
-import net.minecraftforge.event.terraingen.ChunkGeneratorEvent.ReplaceBiomeBlocks
 import net.minecraftforge.event.terraingen._
 import net.minecraftforge.event.world.WorldEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
@@ -23,40 +20,23 @@ import scala.collection.mutable
   */
 abstract class StructureGenerator[T <: Structure[_]](chunksRange: Int, dimensionId: Int = SurfaceDimensionId) extends Logging {
 
-    private var generating = false // Avoid recursion caused by mods scanning chunks during ChunkGenerator initialization
-
     protected val invalidWorldTypes = Set[WorldType]()
     protected val structures = mutable.Map[XZ, Option[T]]()
 
     EVENT_BUS.register(this)
+    structureGenerators += this
 
-    @SubscribeEvent def onChunkGeneration(event: ReplaceBiomeBlocks) {
-        val world =
-            if(event.getWorld != null) event.getWorld
-            else chunkGeneratorWorldClassFields(event.getGenerator.getClass).value[World](event.getGenerator)
-        onChunkGeneration(world.asInstanceOf[WorldServer], event.getGenerator, event.getX, event.getZ, event.getPrimer)
-    }
-
-    def onChunkGeneration(world: WorldServer, generator: IChunkGenerator, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
-        if(!generating && world.getDimension == dimensionId && !invalidWorldTypes.contains(world.terrainType)) {
-            val structureChunkProvider = StructureGenerationChunkProvider(world)
-            // Don't recurse events when generating for structures
-            if(generator != structureChunkProvider.generator && !structureChunkProvider.baseGenerator.contains(generator)) {
-                generating = true
-                generate(world, xChunk, zChunk, primer)
-                generating = false
-            }
-        }
-    }
+    def generateStructures(world: WorldServer, xChunk: Int, zChunk: Int, primer: ChunkPrimer) =
+        generate(world, xChunk, zChunk, primer)
 
     protected def generate(world: WorldServer, xChunk: Int, zChunk: Int, primer: ChunkPrimer) {
         for(xStructureChunk <- xChunk - chunksRange to xChunk + chunksRange;
             zStructureChunk <- zChunk - chunksRange to zChunk + chunksRange) {
             if(!structures.contains(xStructureChunk, zStructureChunk)) {
-              implicit val chunkProvider = new StructureGenerationBlockAccess(StructureGenerationChunkProvider(world))
-              implicit val random = chunkRandom(xStructureChunk, zStructureChunk)(world)
-              val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,             (zStructureChunk - chunksRange)*ChunkSize,
-                                          (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
+                implicit val chunkProvider = new StructureGenerationBlockAccess(StructureGenerationChunkProvider(world))
+                implicit val random = chunkRandom(xStructureChunk, zStructureChunk)(world)
+                val bounds = worldHeightBox((xStructureChunk - chunksRange)*ChunkSize,             (zStructureChunk - chunksRange)*ChunkSize,
+                                            (xStructureChunk + chunksRange)*ChunkSize + iChunkMax, (zStructureChunk + chunksRange)*ChunkSize + iChunkMax)
                 val structureOption = createStructure(bounds).flatMap { structure =>
                     structure.generate()
                     if(structure.isValid) {

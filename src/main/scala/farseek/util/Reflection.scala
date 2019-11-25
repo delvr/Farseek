@@ -60,11 +60,25 @@ object Reflection {
             catch { case ex: InvocationTargetException => throw ex.getCause }
     }
 
+    /** Value class for [[Constructor]]s with utility methods. */
+    implicit class ConstructorValue[T](val ctor: Constructor[T]) extends AnyVal {
+
+        def accessible: Constructor[T] = if(ctor.isAccessible) ctor else { ctor.setAccessible(true); ctor }
+
+        def apply(args: Any*): T =
+            try ctor.newInstance(args.map(_.asInstanceOf[AnyRef]):_*)
+            catch { case ex: InvocationTargetException => throw ex.getCause }
+    }
+
     implicit class ClassValue(val classe: Class[_]) extends AnyVal {
 
         def field(name: String): Option[Field] =
             try Some(classe.getDeclaredField(name).accessible)
             catch { case _: NoSuchFieldException => None }
+
+        def constructor[T](params: Class[_]*): Option[Constructor[T]] =
+            try Some(classe.getDeclaredConstructor(params:_*).accessible.asInstanceOf[Constructor[T]])
+            catch { case _: NoSuchMethodException => None }
 
         def declaredMethod(name: String, params: Class[_]*): Option[Method] =
             try Some(classe.getDeclaredMethod(name, params:_*).accessible)
