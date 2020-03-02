@@ -15,7 +15,7 @@ buildscript {
 apply from: "common.gradle"
 
 dependencies {
-    compileOnly "curse.maven:open-terrain-generator-1.12.2-v8:2811144"
+    compileOnly "curse.maven:open-terrain-generator-1.12.2 - v8.3:2835526"
 }
 
 jar.manifest {
