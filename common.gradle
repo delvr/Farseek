@@ -11,6 +11,7 @@ def modId = modName.toLowerCase()
 // ---------------------------------------------------------------------------------------------------------------------
 wrapper {
     gradleVersion = gradleWrapperVersion
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 apply plugin: "scala"

@@ -1,3 +1,1 @@
-- Fixed [Streams mod generating water rivers in the Nether](https://github.com/delvr/Streams/issues/97).
-- Fixed [crash with recent versions of SpongeForge](https://github.com/delvr/Farseek/issues/55) (tested with release versions 7.1.9 and 7.1.10).
-- Possibly fixed [Streams crash with certain mod combinations](https://github.com/delvr/Farseek/issues/56) (to be confirmed).
+- Compatible with OpenTerrainGenerator 9.0 (but not with earlier versions).
